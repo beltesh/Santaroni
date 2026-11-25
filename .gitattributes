@@ -1,0 +1,7 @@
+# Store text files with LF line endings in the repository, whatever the
+# contributor's OS or editor settings. Binary files are detected automatically.
+* text=auto
+
+# Windows batch scripts need CRLF to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf

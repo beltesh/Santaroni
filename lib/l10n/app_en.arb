@@ -1,0 +1,142 @@
+{
+  "@@locale": "en",
+  "appTitle": "Santaroni",
+  "@appTitle": {
+    "description": "The application name. Not translated."
+  },
+
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "remove": "Remove",
+  "edit": "Edit",
+  "clear": "Clear",
+  "optional": "Optional",
+
+  "homeEmptyTitle": "No events yet",
+  "homeEmptyBody": "Create your first Secret Santa to get started.",
+  "newEvent": "New Secret Santa",
+  "participantCount": "{count, plural, =0{No participants} =1{1 participant} other{{count} participants}}",
+  "@participantCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "statusDraft": "Draft",
+  "statusGenerated": "Names drawn",
+  "statusSending": "Sending",
+  "statusSent": "Sent",
+
+  "settings": "Settings",
+  "settingsLanguage": "Language",
+  "languageSystem": "System default",
+  "languageEnglish": "English",
+  "languageSpanish": "Español",
+
+  "eventFormEditTitle": "Edit event",
+  "eventName": "Event name",
+  "eventNameHint": "e.g. Comic Book Group Secret Santa 2026",
+  "eventNameRequired": "Please enter a name",
+  "eventDate": "Date",
+  "eventTime": "Time",
+  "eventPlace": "Place",
+  "eventBudget": "Max budget",
+  "eventCurrency": "Currency",
+  "invalidAmount": "Enter a valid amount",
+  "emailLanguage": "Email language",
+  "budgetUpTo": "Budget: up to {amount}",
+  "@budgetUpTo": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "eventDetailsEmpty": "No date, place or budget yet.",
+  "deleteEventTitle": "Delete this event?",
+  "deleteEventBody": "“{name}” and all its participants will be permanently deleted.",
+  "@deleteEventBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "eventLockedBanner": "Emails have been sent, so people can't be added or removed.",
+  "eventLockedError": "Emails were already sent for this event.",
+
+  "participants": "Participants",
+  "addParticipant": "Add participant",
+  "importCsv": "Import CSV",
+  "participantsEmpty": "Add people one by one or import a CSV file.",
+  "needMoreParticipants": "You need at least {count} participants to draw names.",
+  "@needMoreParticipants": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "wishlistCount": "{count, plural, =1{1 wish} other{{count} wishes}}",
+  "@wishlistCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "participantFormEditTitle": "Edit participant",
+  "participantName": "Name",
+  "participantEmail": "Email",
+  "participantGroup": "Exclusion group",
+  "participantGroupHelp": "People in the same group never draw each other, e.g. couples or roommates.",
+  "nameRequired": "Please enter a name",
+  "emailRequired": "Please enter an email address",
+  "emailInvalid": "That doesn't look like an email address",
+  "emailDuplicate": "Someone in this event already uses this email",
+  "wishlist": "Wishlist",
+  "wishlistEmpty": "No wishes yet.",
+  "wishlistItem": "Item",
+  "wishlistLink": "Link (optional)",
+  "addWishlistItem": "Add item",
+  "deleteParticipantTitle": "Remove {name}?",
+  "@deleteParticipantTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteParticipantBody": "Their wishlist will be deleted too.",
+
+  "csvImportTitle": "Import participants",
+  "csvIntro": "Choose a CSV file with one participant per row. The first row must contain the column names. You can export one from Excel, Google Sheets or Google Forms.",
+  "csvColumnsRequired": "Required columns: name, email",
+  "csvColumnsOptional": "Optional columns: wishlist, group",
+  "csvWishlistTip": "Put each wish on its own line inside the cell (Alt+Enter in most spreadsheets), or separate them with \" | \". Links at the end of a wish are detected automatically.",
+  "csvChooseFile": "Choose CSV file",
+  "csvChooseAnother": "Choose another",
+  "csvSaveExample": "Save example file",
+  "csvExampleSaved": "Example file saved",
+  "csvSaveError": "Couldn't save the file.",
+  "csvReadError": "Couldn't read that file.",
+  "csvColName": "name",
+  "csvColEmail": "email",
+  "csvColWishlist": "wishlist",
+  "csvColGroup": "group",
+  "csvMissingColumns": "This file is missing required columns: {columns}",
+  "@csvMissingColumns": {
+    "placeholders": { "columns": { "type": "String" } }
+  },
+  "csvNothingToImport": "No participants found in this file.",
+  "csvReady": "{count, plural, =1{1 participant ready to import} other{{count} participants ready to import}}",
+  "@csvReady": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "csvSkipped": "{count, plural, =1{1 row skipped} other{{count} rows skipped}}",
+  "@csvSkipped": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "csvRowError": "Row {row}: {problem}",
+  "@csvRowError": {
+    "placeholders": { "row": { "type": "int" }, "problem": { "type": "String" } }
+  },
+  "csvProblemMissingName": "missing name",
+  "csvProblemMissingEmail": "missing email",
+  "csvProblemInvalidEmail": "invalid email “{value}”",
+  "@csvProblemInvalidEmail": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "csvProblemDuplicateEmail": "“{value}” is already in this event",
+  "@csvProblemDuplicateEmail": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "csvImportButton": "{count, plural, =1{Import 1 participant} other{Import {count} participants}}",
+  "@csvImportButton": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "csvImported": "{count, plural, =1{Imported 1 participant} other{Imported {count} participants}}",
+  "@csvImported": {
+    "placeholders": { "count": { "type": "int" } }
+  }
+}
