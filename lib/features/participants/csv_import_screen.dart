@@ -74,7 +74,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
       );
       if (uri != null && mounted) showSnack(context, l10n.csvExampleSaved);
     } catch (_) {
-      if (mounted) showSnack(context, l10n.csvSaveError);
+      if (mounted) showSnack(context, l10n.fileSaveError);
     }
   }
 

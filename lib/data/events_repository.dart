@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart';
 
+import '../core/assignment/secret_santa_cycle.dart';
 import '../core/model/wishlist_entry.dart';
 import '../core/util/email.dart';
 import '../core/util/slug.dart';
@@ -81,6 +84,15 @@ class ParticipantWithWishlist {
 
   final Participant participant;
   final List<WishlistItem> wishlist;
+}
+
+/// One giver → recipient pair with both people loaded.
+class AssignmentView {
+  const AssignmentView(this.assignment, this.giver, this.recipient);
+
+  final Assignment assignment;
+  final Participant giver;
+  final Participant recipient;
 }
 
 class EventSummary {
@@ -232,15 +244,104 @@ class EventsRepository {
             .go();
       });
 
+  /// Removes every participant (and their wishlists) from [eventId].
+  Future<void> deleteAllParticipants(int eventId) => _db.transaction(() async {
+        await _beforeRosterChange(eventId);
+        await (_db.delete(_db.participants)
+              ..where((p) => p.eventId.equals(eventId)))
+            .go();
+      });
+
+  // --- Draw ----------------------------------------------------------------
+
+  /// Draws names for [eventId], replacing any previous (unsent) draw.
+  ///
+  /// Throws [AssignmentException] when a draw is impossible (too few people,
+  /// or exclusion groups that can't be satisfied) and [EventLockedException]
+  /// once emails have gone out.
+  Future<void> drawNames(int eventId, {Random? random}) =>
+      _db.transaction(() async {
+        final event = await _event(eventId);
+        if (event.status == EventStatus.sending ||
+            event.status == EventStatus.sent) {
+          throw const EventLockedException();
+        }
+
+        final people = await (_db.select(_db.participants)
+              ..where((p) => p.eventId.equals(eventId)))
+            .get();
+        final ids = [for (final p in people) p.id];
+        final groups = {for (final p in people) p.id: p.groupTag};
+
+        final draw =
+            SecretSantaCycle.generate(ids, groups: groups, random: random);
+        // Belt and braces: never store a draw that fails verification.
+        final issues = SecretSantaCycle.validate(ids, draw, groups: groups);
+        if (issues.isNotEmpty) {
+          throw StateError('Generated draw failed verification: $issues');
+        }
+
+        await (_db.delete(_db.assignments)
+              ..where((a) => a.eventId.equals(eventId)))
+            .go();
+        await _db.batch((b) {
+          for (final MapEntry(key: giver, value: recipient) in draw.entries) {
+            b.insert(
+              _db.assignments,
+              AssignmentsCompanion.insert(
+                eventId: eventId,
+                giverId: giver,
+                recipientId: recipient,
+              ),
+            );
+          }
+        });
+        await _setStatus(eventId, EventStatus.generated);
+      });
+
+  /// All assignments for [eventId], sorted by giver name. Sorting by name
+  /// (not by position in the loop) matters: in loop order each row's
+  /// recipient would be the next row's giver, revealing the draw.
+  Stream<List<AssignmentView>> watchAssignments(int eventId) {
+    final a = _db.assignments;
+    final giver = _db.alias(_db.participants, 'giver');
+    final recipient = _db.alias(_db.participants, 'recipient');
+    final query = _db.select(a).join([
+      innerJoin(giver, giver.id.equalsExp(a.giverId)),
+      innerJoin(recipient, recipient.id.equalsExp(a.recipientId)),
+    ])
+      ..where(a.eventId.equals(eventId))
+      ..orderBy([
+        OrderingTerm.asc(giver.name.collate(Collate.noCase)),
+        OrderingTerm.asc(giver.id),
+      ]);
+    return query.watch().map((rows) => [
+          for (final row in rows)
+            AssignmentView(
+              row.readTable(a),
+              row.readTable(giver),
+              row.readTable(recipient),
+            ),
+        ]);
+  }
+
+  Future<List<AssignmentView>> assignments(int eventId) =>
+      watchAssignments(eventId).first;
+
   // ---------------------------------------------------------------------------
+
+  Future<Event> _event(int eventId) =>
+      (_db.select(_db.events)..where((e) => e.id.equals(eventId))).getSingle();
+
+  Future<void> _setStatus(int eventId, EventStatus status) =>
+      (_db.update(_db.events)..where((e) => e.id.equals(eventId)))
+          .write(EventsCompanion(status: Value(status)));
 
   /// Before adding/removing people: drafts are free to change; generated
   /// (but unsent) assignments are discarded; once sending has started the
   /// roster is locked.
   Future<void> _beforeRosterChange(int eventId) async {
-    final event = await (_db.select(_db.events)
-          ..where((e) => e.id.equals(eventId)))
-        .getSingle();
+    final event = await _event(eventId);
     switch (event.status) {
       case EventStatus.draft:
         return;
@@ -248,8 +349,7 @@ class EventsRepository {
         await (_db.delete(_db.assignments)
               ..where((a) => a.eventId.equals(eventId)))
             .go();
-        await (_db.update(_db.events)..where((e) => e.id.equals(eventId)))
-            .write(const EventsCompanion(status: Value(EventStatus.draft)));
+        await _setStatus(eventId, EventStatus.draft);
       case EventStatus.sending:
       case EventStatus.sent:
         throw const EventLockedException();

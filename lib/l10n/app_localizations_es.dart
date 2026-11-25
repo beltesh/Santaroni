@@ -219,6 +219,125 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteParticipantBody => 'También se borrará su lista de deseos.';
 
   @override
+  String get removeAllParticipants => 'Quitar a todos';
+
+  @override
+  String get removeAllParticipantsTitle => '¿Quitar a todos los participantes?';
+
+  @override
+  String removeAllParticipantsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se quitarán los $count participantes y sus listas de deseos.',
+      one: 'Se quitará 1 participante y su lista de deseos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removeAllCancelsDraw => 'También se cancelará el sorteo actual.';
+
+  @override
+  String get rosterChangeCancelsDraw =>
+      'Si agregas o quitas personas, o cambias los grupos, se cancelará el sorteo actual.';
+
+  @override
+  String get ok => 'Aceptar';
+
+  @override
+  String get drawNames => 'Hacer el sorteo';
+
+  @override
+  String get drawReadyTitle => 'Listo para el sorteo';
+
+  @override
+  String get drawReadyBody =>
+      'Todos quedarán conectados en un solo círculo: cada persona da un regalo y recibe uno. Todavía no se envía ningún correo.';
+
+  @override
+  String get drawDoneTitle => 'Sorteo hecho';
+
+  @override
+  String get drawDoneBody =>
+      'Revisa el sorteo o guarda un respaldo. Todavía no se ha enviado ningún correo.';
+
+  @override
+  String get drawDoneSnack => '¡Sorteo hecho!';
+
+  @override
+  String get reviewDraw => 'Revisar';
+
+  @override
+  String get redraw => 'Volver a sortear';
+
+  @override
+  String get redrawTitle => '¿Volver a hacer el sorteo?';
+
+  @override
+  String get redrawBody =>
+      'El sorteo actual se reemplazará por uno completamente nuevo.';
+
+  @override
+  String get drawErrorTitle => 'No se puede hacer el sorteo';
+
+  @override
+  String get drawErrorExclusions =>
+      'Con estos grupos de exclusión no se puede hacer el sorteo. Un grupo puede tener como máximo la mitad de los participantes.';
+
+  @override
+  String get reviewTitle => 'Revisar sorteo';
+
+  @override
+  String get reviewHiddenHint =>
+      'Los nombres están ocultos para que tú también puedas participar. Toca una fila o su ícono de ojo para verla.';
+
+  @override
+  String get drawVerified =>
+      'Verificado: cada persona da y recibe exactamente un regalo, en un solo círculo.';
+
+  @override
+  String get drawInvalid =>
+      'Este sorteo no pasó la verificación. Vuelve a sortear.';
+
+  @override
+  String get givesTo => 'le regala a';
+
+  @override
+  String get hiddenName => 'Nombre oculto';
+
+  @override
+  String get show => 'Mostrar';
+
+  @override
+  String get hide => 'Ocultar';
+
+  @override
+  String get showAll => 'Mostrar todo';
+
+  @override
+  String get hideAll => 'Ocultar todo';
+
+  @override
+  String get exportJson => 'Exportar JSON';
+
+  @override
+  String get exportTitle => 'Guardar un respaldo';
+
+  @override
+  String get exportBody =>
+      'El respaldo completo incluye quién le regala a quién, en texto normal. Cualquiera que abra el archivo verá todas las asignaciones, incluida la tuya.';
+
+  @override
+  String get exportWithAssignments => 'Respaldo completo';
+
+  @override
+  String get exportWithoutAssignments => 'Sin asignaciones';
+
+  @override
+  String get exportSaved => 'Respaldo guardado';
+
+  @override
   String get csvImportTitle => 'Importar participantes';
 
   @override
@@ -248,7 +367,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get csvExampleSaved => 'Se guardó el archivo de ejemplo';
 
   @override
-  String get csvSaveError => 'No se pudo guardar el archivo.';
+  String get fileSaveError => 'No se pudo guardar el archivo.';
 
   @override
   String get csvReadError => 'No se pudo leer el archivo.';

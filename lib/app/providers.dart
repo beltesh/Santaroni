@@ -28,6 +28,11 @@ final eventSummariesProvider = StreamProvider.autoDispose<List<EventSummary>>(
 final eventProvider = StreamProvider.autoDispose.family<Event?, int>(
     (ref, id) => ref.watch(eventsRepositoryProvider).watchEvent(id));
 
+final assignmentsProvider =
+    StreamProvider.autoDispose.family<List<AssignmentView>, int>(
+        (ref, eventId) =>
+            ref.watch(eventsRepositoryProvider).watchAssignments(eventId));
+
 final participantsProvider =
     StreamProvider.autoDispose.family<List<ParticipantWithWishlist>, int>(
         (ref, eventId) =>

@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:santaroni/core/assignment/secret_santa_cycle.dart';
 import 'package:santaroni/core/model/wishlist_entry.dart';
 import 'package:santaroni/data/database.dart';
 import 'package:santaroni/data/events_repository.dart';
@@ -131,5 +134,87 @@ void main() {
     await repo.addParticipant(eventId, person('Ana'));
     await repo.deleteEvent(eventId);
     expect(await db.select(db.participants).get(), isEmpty);
+  });
+
+  test('deleteAllParticipants clears the roster and cancels a draw', () async {
+    for (final n in ['Ana', 'Beto', 'Carla']) {
+      await repo.addParticipant(
+          eventId, person(n, wishes: const [WishlistEntry('Gift')]));
+    }
+    await repo.drawNames(eventId);
+
+    await repo.deleteAllParticipants(eventId);
+
+    expect(await repo.watchParticipants(eventId).first, isEmpty);
+    expect(await db.select(db.wishlistItems).get(), isEmpty);
+    expect(await db.select(db.assignments).get(), isEmpty);
+    expect((await repo.watchEvent(eventId).first)!.status, EventStatus.draft);
+
+    await setStatus(EventStatus.sent);
+    expect(() => repo.deleteAllParticipants(eventId),
+        throwsA(isA<EventLockedException>()));
+  });
+
+  group('drawNames', () {
+    Future<List<int>> addPeople(List<String> names, {Map<String, String>? groups}) async => [
+          for (final n in names)
+            await repo.addParticipant(eventId, person(n, group: groups?[n])),
+        ];
+
+    test('stores a verified single cycle and marks the event drawn', () async {
+      final ids = await addPeople(['Ana', 'Beto', 'Carla', 'Dani', 'Eva']);
+      await repo.drawNames(eventId, random: Random(1));
+
+      final views = await repo.assignments(eventId);
+      final map = {for (final v in views) v.giver.id: v.recipient.id};
+      expect(SecretSantaCycle.isValid(ids, map), isTrue);
+      expect((await repo.watchEvent(eventId).first)!.status, EventStatus.generated);
+      expect(views.every((v) => v.assignment.sendStatus == SendStatus.pending), isTrue);
+    });
+
+    test('lists assignments by giver name, not loop order', () async {
+      await addPeople(['Zoe', 'ana', 'Mario', 'beto']);
+      await repo.drawNames(eventId, random: Random(3));
+      final views = await repo.assignments(eventId);
+      expect(views.map((v) => v.giver.name), ['ana', 'beto', 'Mario', 'Zoe']);
+    });
+
+    test('redrawing replaces the previous draw', () async {
+      await addPeople(['Ana', 'Beto', 'Carla', 'Dani']);
+      await repo.drawNames(eventId, random: Random(1));
+      await repo.drawNames(eventId, random: Random(2));
+      expect(await repo.assignments(eventId), hasLength(4));
+    });
+
+    test('respects exclusion groups', () async {
+      await addPeople(['Ana', 'Beto', 'Carla', 'Dani'],
+          groups: {'Ana': 'couple', 'Beto': 'couple'});
+      for (var seed = 0; seed < 20; seed++) {
+        await repo.drawNames(eventId, random: Random(seed));
+        for (final v in await repo.assignments(eventId)) {
+          expect({v.giver.name, v.recipient.name}, isNot({'Ana', 'Beto'}));
+        }
+      }
+    });
+
+    test('fails cleanly when impossible, keeping the event a draft', () async {
+      await addPeople(['Ana', 'Beto']);
+      await expectLater(repo.drawNames(eventId), throwsA(isA<AssignmentException>()));
+
+      await addPeople(['Carla'], groups: {'Carla': 'x'});
+      await repo.updateParticipant(
+          (await repo.watchParticipants(eventId).first).first.participant.id,
+          person('Ana', group: 'x'));
+      await expectLater(repo.drawNames(eventId), throwsA(isA<AssignmentException>()));
+
+      expect(await repo.assignments(eventId), isEmpty);
+      expect((await repo.watchEvent(eventId).first)!.status, EventStatus.draft);
+    });
+
+    test('is refused once sending has started', () async {
+      await addPeople(['Ana', 'Beto', 'Carla']);
+      await setStatus(EventStatus.sending);
+      expect(() => repo.drawNames(eventId), throwsA(isA<EventLockedException>()));
+    });
   });
 }

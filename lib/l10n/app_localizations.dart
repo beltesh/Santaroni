@@ -458,6 +458,210 @@ abstract class AppLocalizations {
   /// **'Their wishlist will be deleted too.'**
   String get deleteParticipantBody;
 
+  /// No description provided for @removeAllParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all'**
+  String get removeAllParticipants;
+
+  /// No description provided for @removeAllParticipantsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all participants?'**
+  String get removeAllParticipantsTitle;
+
+  /// No description provided for @removeAllParticipantsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 participant and their wishlist will be removed.} other{All {count} participants and their wishlists will be removed.}}'**
+  String removeAllParticipantsBody(int count);
+
+  /// No description provided for @removeAllCancelsDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'The current draw will be cancelled too.'**
+  String get removeAllCancelsDraw;
+
+  /// No description provided for @rosterChangeCancelsDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding or removing people, or changing groups, will cancel the current draw.'**
+  String get rosterChangeCancelsDraw;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @drawNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw names'**
+  String get drawNames;
+
+  /// No description provided for @drawReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to draw names'**
+  String get drawReadyTitle;
+
+  /// No description provided for @drawReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone will be linked in one single loop, so each person gives one gift and gets one gift. No emails are sent yet.'**
+  String get drawReadyBody;
+
+  /// No description provided for @drawDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Names drawn'**
+  String get drawDoneTitle;
+
+  /// No description provided for @drawDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the draw or save a backup. No emails have been sent yet.'**
+  String get drawDoneBody;
+
+  /// No description provided for @drawDoneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Names drawn'**
+  String get drawDoneSnack;
+
+  /// No description provided for @reviewDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get reviewDraw;
+
+  /// No description provided for @redraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Redraw'**
+  String get redraw;
+
+  /// No description provided for @redrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw names again?'**
+  String get redrawTitle;
+
+  /// No description provided for @redrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The current draw will be replaced with a completely new one.'**
+  String get redrawBody;
+
+  /// No description provided for @drawErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t draw names'**
+  String get drawErrorTitle;
+
+  /// No description provided for @drawErrorExclusions.
+  ///
+  /// In en, this message translates to:
+  /// **'These exclusion groups make a draw impossible. A group can include at most half of the participants.'**
+  String get drawErrorExclusions;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review draw'**
+  String get reviewTitle;
+
+  /// No description provided for @reviewHiddenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Names are hidden so you can take part too. Tap a row or its eye icon to reveal it.'**
+  String get reviewHiddenHint;
+
+  /// No description provided for @drawVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified: everyone gives and receives exactly once, in a single loop.'**
+  String get drawVerified;
+
+  /// No description provided for @drawInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This draw failed verification. Please redraw.'**
+  String get drawInvalid;
+
+  /// No description provided for @givesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'gives to'**
+  String get givesTo;
+
+  /// No description provided for @hiddenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden name'**
+  String get hiddenName;
+
+  /// No description provided for @show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get show;
+
+  /// No description provided for @hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hide;
+
+  /// No description provided for @showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get showAll;
+
+  /// No description provided for @hideAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide all'**
+  String get hideAll;
+
+  /// No description provided for @exportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export JSON'**
+  String get exportJson;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a backup'**
+  String get exportTitle;
+
+  /// No description provided for @exportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A full backup includes who gives to whom, in plain text. Anyone who opens the file will see every assignment, including yours.'**
+  String get exportBody;
+
+  /// No description provided for @exportWithAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Full backup'**
+  String get exportWithAssignments;
+
+  /// No description provided for @exportWithoutAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Without assignments'**
+  String get exportWithoutAssignments;
+
+  /// No description provided for @exportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get exportSaved;
+
   /// No description provided for @csvImportTitle.
   ///
   /// In en, this message translates to:
@@ -512,11 +716,11 @@ abstract class AppLocalizations {
   /// **'Example file saved'**
   String get csvExampleSaved;
 
-  /// No description provided for @csvSaveError.
+  /// No description provided for @fileSaveError.
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t save the file.'**
-  String get csvSaveError;
+  String get fileSaveError;
 
   /// No description provided for @csvReadError.
   ///

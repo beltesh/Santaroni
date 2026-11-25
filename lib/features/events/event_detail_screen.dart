@@ -8,6 +8,7 @@ import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/dialogs.dart';
 import '../common/format.dart';
+import '../draw/draw_card.dart';
 import '../participants/csv_import_screen.dart';
 import '../participants/participant_form_screen.dart';
 import 'event_form_screen.dart';
@@ -51,6 +52,30 @@ class EventDetailScreen extends ConsumerWidget {
         knownGroups: groups,
       ),
     ));
+  }
+
+  Future<void> _removeAll(
+    BuildContext context,
+    WidgetRef ref,
+    Event event,
+    int count,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final body = l10n.removeAllParticipantsBody(count);
+    final confirmed = await confirmDestructive(
+      context,
+      title: l10n.removeAllParticipantsTitle,
+      body: event.status == EventStatus.generated
+          ? '$body ${l10n.removeAllCancelsDraw}'
+          : body,
+      confirmLabel: l10n.removeAllParticipants,
+    );
+    if (!confirmed || !context.mounted) return;
+    try {
+      await ref.read(eventsRepositoryProvider).deleteAllParticipants(event.id);
+    } on EventLockedException {
+      if (context.mounted) showSnack(context, l10n.eventLockedError);
+    }
   }
 
   Future<void> _import(BuildContext context) async {
@@ -114,6 +139,8 @@ class EventDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _Banner(icon: Icons.lock_outline, text: l10n.eventLockedBanner),
           ],
+          const SizedBox(height: 12),
+          DrawCard(event: event, participantCount: list.length),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -129,6 +156,13 @@ class EventDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.upload_file),
                   label: Text(l10n.importCsv),
                 ),
+              if (!locked && list.isNotEmpty)
+                IconButton(
+                  tooltip: l10n.removeAllParticipants,
+                  icon: Icon(Icons.delete_sweep_outlined,
+                      color: Theme.of(context).colorScheme.error),
+                  onPressed: () => _removeAll(context, ref, event, list.length),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -140,6 +174,14 @@ class EventDetailScreen extends ConsumerWidget {
               onImport: () => _import(context),
             )
           else ...[
+            if (event.status == EventStatus.generated)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _Banner(
+                  icon: Icons.info_outline,
+                  text: l10n.rosterChangeCancelsDraw,
+                ),
+              ),
             if (list.length < SecretSantaCycle.minParticipants)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),

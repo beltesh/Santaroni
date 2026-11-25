@@ -217,6 +217,124 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteParticipantBody => 'Their wishlist will be deleted too.';
 
   @override
+  String get removeAllParticipants => 'Remove all';
+
+  @override
+  String get removeAllParticipantsTitle => 'Remove all participants?';
+
+  @override
+  String removeAllParticipantsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'All $count participants and their wishlists will be removed.',
+      one: '1 participant and their wishlist will be removed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removeAllCancelsDraw => 'The current draw will be cancelled too.';
+
+  @override
+  String get rosterChangeCancelsDraw =>
+      'Adding or removing people, or changing groups, will cancel the current draw.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get drawNames => 'Draw names';
+
+  @override
+  String get drawReadyTitle => 'Ready to draw names';
+
+  @override
+  String get drawReadyBody =>
+      'Everyone will be linked in one single loop, so each person gives one gift and gets one gift. No emails are sent yet.';
+
+  @override
+  String get drawDoneTitle => 'Names drawn';
+
+  @override
+  String get drawDoneBody =>
+      'Review the draw or save a backup. No emails have been sent yet.';
+
+  @override
+  String get drawDoneSnack => 'Names drawn';
+
+  @override
+  String get reviewDraw => 'Review';
+
+  @override
+  String get redraw => 'Redraw';
+
+  @override
+  String get redrawTitle => 'Draw names again?';
+
+  @override
+  String get redrawBody =>
+      'The current draw will be replaced with a completely new one.';
+
+  @override
+  String get drawErrorTitle => 'Can\'t draw names';
+
+  @override
+  String get drawErrorExclusions =>
+      'These exclusion groups make a draw impossible. A group can include at most half of the participants.';
+
+  @override
+  String get reviewTitle => 'Review draw';
+
+  @override
+  String get reviewHiddenHint =>
+      'Names are hidden so you can take part too. Tap a row or its eye icon to reveal it.';
+
+  @override
+  String get drawVerified =>
+      'Verified: everyone gives and receives exactly once, in a single loop.';
+
+  @override
+  String get drawInvalid => 'This draw failed verification. Please redraw.';
+
+  @override
+  String get givesTo => 'gives to';
+
+  @override
+  String get hiddenName => 'Hidden name';
+
+  @override
+  String get show => 'Show';
+
+  @override
+  String get hide => 'Hide';
+
+  @override
+  String get showAll => 'Show all';
+
+  @override
+  String get hideAll => 'Hide all';
+
+  @override
+  String get exportJson => 'Export JSON';
+
+  @override
+  String get exportTitle => 'Save a backup';
+
+  @override
+  String get exportBody =>
+      'A full backup includes who gives to whom, in plain text. Anyone who opens the file will see every assignment, including yours.';
+
+  @override
+  String get exportWithAssignments => 'Full backup';
+
+  @override
+  String get exportWithoutAssignments => 'Without assignments';
+
+  @override
+  String get exportSaved => 'Backup saved';
+
+  @override
   String get csvImportTitle => 'Import participants';
 
   @override
@@ -246,7 +364,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get csvExampleSaved => 'Example file saved';
 
   @override
-  String get csvSaveError => 'Couldn\'t save the file.';
+  String get fileSaveError => 'Couldn\'t save the file.';
 
   @override
   String get csvReadError => 'Couldn\'t read that file.';

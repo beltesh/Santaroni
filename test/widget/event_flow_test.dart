@@ -57,7 +57,7 @@ void main() {
     expect(find.text('Add people one by one or import a CSV file.'),
         findsOneWidget);
 
-    await tester.tap(find.text('Add participant').first);
+    await tester.tap(find.byType(FloatingActionButton));
     await settle(tester);
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Ana López');
     await tester.enterText(
@@ -84,6 +84,99 @@ void main() {
 
     final stored = await tester.runAsync(() => db.select(db.wishlistItems).get());
     expect(stored!.single.itemText, 'Mug');
+  });
+
+  testWidgets('draw names and review with names hidden until revealed',
+      (tester) async {
+    final db = _memoryDb();
+    addTearDown(db.close);
+    const names = ['Ana', 'Beto', 'Carla', 'Dani'];
+    await tester.runAsync(() async {
+      final repo = EventsRepository(db);
+      final id = await repo.createEvent(const EventDraft(name: 'Party'));
+      for (final n in names) {
+        await repo.addParticipant(
+            id, ParticipantDraft(name: n, email: '$n@example.com'));
+      }
+    });
+
+    await tester.pumpWidget(_app(db));
+    await settle(tester);
+    await tester.tap(find.text('Party'));
+    await settle(tester);
+
+    expect(find.text('Ready to draw names'), findsOneWidget);
+    await tester.tap(find.text('Draw names'));
+    await settle(tester);
+    expect(find.text('Names drawn'), findsWidgets);
+    expect(
+        find.textContaining('will cancel the current draw'), findsOneWidget);
+
+    await tester.tap(find.text('Review'));
+    await settle(tester);
+    expect(find.textContaining('Verified'), findsOneWidget);
+
+    // Hidden: each name appears once (as a giver), never as a recipient.
+    for (final n in names) {
+      expect(find.text(n), findsOneWidget, reason: '$n should only be a giver');
+    }
+
+    // Reveal one row: exactly one recipient name becomes visible.
+    await tester.tap(find.byTooltip('Show').first);
+    await settle(tester);
+    final visibleTwice =
+        names.where((n) => find.text(n).evaluate().length == 2).length;
+    expect(visibleTwice, 1);
+
+    // Show all: every name appears as giver and as recipient.
+    await tester.tap(find.byTooltip('Show all'));
+    await settle(tester);
+    for (final n in names) {
+      expect(find.text(n), findsNWidgets(2));
+    }
+
+    // Hide all again.
+    await tester.tap(find.byTooltip('Hide all'));
+    await settle(tester);
+    for (final n in names) {
+      expect(find.text(n), findsOneWidget);
+    }
+  });
+
+  testWidgets('remove all participants after confirming', (tester) async {
+    final db = _memoryDb();
+    addTearDown(db.close);
+    await tester.runAsync(() async {
+      final repo = EventsRepository(db);
+      final id = await repo.createEvent(const EventDraft(name: 'Party'));
+      for (final n in ['Ana', 'Beto']) {
+        await repo.addParticipant(
+            id, ParticipantDraft(name: n, email: '$n@example.com'));
+      }
+    });
+
+    await tester.pumpWidget(_app(db));
+    await settle(tester);
+    await tester.tap(find.text('Party'));
+    await settle(tester);
+    expect(find.text('Participants (2)'), findsOneWidget);
+
+    // Cancelling keeps everyone.
+    await tester.tap(find.byTooltip('Remove all'));
+    await settle(tester);
+    expect(find.text('All 2 participants and their wishlists will be removed.'),
+        findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+    expect(find.text('Participants (2)'), findsOneWidget);
+
+    // Confirming removes them, and the button disappears with nobody left.
+    await tester.tap(find.byTooltip('Remove all'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove all'));
+    await settle(tester);
+    expect(find.text('Participants (0)'), findsOneWidget);
+    expect(find.byTooltip('Remove all'), findsNothing);
   });
 
   testWidgets('event list renders dates and budgets in Spanish', (tester) async {
