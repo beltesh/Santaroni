@@ -5,7 +5,6 @@
 | `santaroni-full.png` | Windows icon and Android 7 (flat) icon. 1024×1024. |
 | `santaroni-foreground.png` | Android adaptive icon foreground. 1024×1024, transparent, artwork kept inside the center ~60% (Android's safe zone). |
 | `santaroni-monochrome.png` | Android 13+ themed icon. Same size and safe zone; only the alpha channel is used. |
-| `originals/` | The designer's source files (JPEGs). |
 
 The Android background color is `#7F030E` (set in `flutter_launcher_icons.yaml`).
 
