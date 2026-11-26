@@ -24,8 +24,6 @@
   "settings": "Configuración",
   "settingsLanguage": "Idioma",
   "languageSystem": "Predeterminado del sistema",
-  "languageEnglish": "English",
-  "languageSpanish": "Español",
 
   "eventFormEditTitle": "Editar intercambio",
   "eventName": "Nombre del intercambio",

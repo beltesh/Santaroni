@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/languages.dart';
 import '../../core/util/currency.dart';
 import '../../data/database.dart';
 import '../../l10n/app_localizations.dart';
@@ -66,3 +67,7 @@ String initials(String name) {
   final last = parts.length > 1 ? parts.last.characters.first : '';
   return (first + last).toUpperCase();
 }
+
+/// The app's current language, as one of [supportedLanguages].
+String appLanguage(BuildContext context) =>
+    supportedLanguage(Localizations.localeOf(context).languageCode);

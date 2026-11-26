@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import '../languages.dart';
 import '../model/wishlist_entry.dart';
 import '../util/currency.dart';
 
@@ -23,7 +24,7 @@ class EmailContext {
     this.wishlist = const [],
   });
 
-  /// Formats raw event fields in [languageCode] ("en" or "es").
+  /// Formats raw event fields in [languageCode] (see [supportedLanguages]).
   factory EmailContext.forEvent({
     required String languageCode,
     required String eventName,
@@ -38,7 +39,7 @@ class EmailContext {
     String? organizerName,
     List<WishlistEntry> wishlist = const [],
   }) {
-    final locale = languageCode == 'es' ? 'es_MX' : 'en_US';
+    final locale = formattingLocale(languageCode);
     return EmailContext(
       eventName: eventName,
       eventDate: date == null
@@ -99,37 +100,66 @@ class EmailContext {
   /// Example values for previewing templates. With [minimal], every
   /// optional field is empty, to check that templates handle that well.
   static EmailContext sample(String languageCode, {bool minimal = false}) {
-    final es = languageCode == 'es';
+    final s = switch (languageCode) {
+      'es' => (
+        event: 'Intercambio navideño de la oficina 2026',
+        place: 'Casa de Ana, Coyoacán',
+        budget: 50000,
+        currency: 'MXN',
+        giver: 'Alejandro',
+        recipient: 'Sofía',
+        organizer: 'Paty',
+        wishlist: const [
+          WishlistEntry(
+            'Libro de cocina mexicana',
+            'https://example.com/libro',
+          ),
+          WishlistEntry('Calcetines navideños'),
+          WishlistEntry('Una planta suculenta'),
+        ],
+      ),
+      'pt' => (
+        event: 'Amigo Secreto da Firma 2026',
+        place: 'Casa da Ana, Vila Madalena',
+        budget: 10000,
+        currency: 'BRL',
+        giver: 'João',
+        recipient: 'Beatriz',
+        organizer: 'Carol',
+        wishlist: const [
+          WishlistEntry('Livro de receitas', 'https://example.com/livro'),
+          WishlistEntry('Meias natalinas'),
+          WishlistEntry('Um vasinho de suculenta'),
+        ],
+      ),
+      _ => (
+        event: 'Comic Book Group Secret Santa 2026',
+        place: "Ana's place",
+        budget: 2500,
+        currency: 'USD',
+        giver: 'Alex',
+        recipient: 'Jordan',
+        organizer: 'Sam',
+        wishlist: const [
+          WishlistEntry('Saga Vol. 1', 'https://example.com/saga'),
+          WishlistEntry('Any Moebius artbook'),
+          WishlistEntry('Good hot sauce'),
+        ],
+      ),
+    };
     return EmailContext.forEvent(
       languageCode: languageCode,
-      eventName: es
-          ? 'Intercambio navideño de la oficina 2026'
-          : 'Comic Book Group Secret Santa 2026',
+      eventName: s.event,
       date: minimal ? null : DateTime(2026, 12, 20),
       time: minimal ? null : '19:30',
-      place: minimal ? null : (es ? 'Casa de Ana, Coyoacán' : "Ana's place"),
-      budgetMinor: minimal ? null : (es ? 50000 : 2500),
-      currency: es ? 'MXN' : 'USD',
-      giverName: es ? 'Alejandro' : 'Alex',
-      giverEmail: es ? 'alejandro@example.com' : 'alex@example.com',
-      recipientName: es ? 'Sofía' : 'Jordan',
-      organizerName: minimal ? null : (es ? 'Paty' : 'Sam'),
-      wishlist: minimal
-          ? const []
-          : es
-          ? const [
-              WishlistEntry(
-                'Libro de cocina mexicana',
-                'https://example.com/libro',
-              ),
-              WishlistEntry('Calcetines navideños'),
-              WishlistEntry('Una planta suculenta'),
-            ]
-          : const [
-              WishlistEntry('Saga Vol. 1', 'https://example.com/saga'),
-              WishlistEntry('Any Moebius artbook'),
-              WishlistEntry('Good hot sauce'),
-            ],
+      place: minimal ? null : s.place,
+      budgetMinor: minimal ? null : s.budget,
+      currency: s.currency,
+      giverName: s.giver,
+      giverEmail: '${s.giver.toLowerCase().replaceAll('ã', 'a')}@example.com',
+      recipientName: s.recipient,
+      organizerName: minimal ? null : s.organizer,
+      wishlist: minimal ? const [] : s.wishlist,
     );
   }
 

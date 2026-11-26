@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/providers.dart';
+import '../../core/languages.dart';
 import '../../core/util/currency.dart';
 import '../../data/database.dart';
 import '../../data/events_repository.dart';
@@ -61,9 +62,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // New events default to the app's current language.
-    _language ??= Localizations.localeOf(context).languageCode == 'es'
-        ? 'es'
-        : 'en';
+    _language ??= appLanguage(context);
     if (!_subjectInitialized) {
       _subjectInitialized = true;
       _subject.text = widget.event?.emailSubject ?? defaultSubject(_language!);
@@ -261,20 +260,25 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            Text(
-              l10n.emailLanguage,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<String>(
-              segments: [
-                ButtonSegment(value: 'en', label: Text(l10n.languageEnglish)),
-                ButtonSegment(value: 'es', label: Text(l10n.languageSpanish)),
+            DropdownButtonFormField<String>(
+              initialValue: _language,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.emailLanguage,
+                prefixIcon: const Icon(Icons.translate),
+              ),
+              items: [
+                for (final code in supportedLanguages)
+                  DropdownMenuItem(
+                    value: code,
+                    child: Text(languageEndonym(code)),
+                  ),
               ],
-              selected: {_language!},
-              onSelectionChanged: (s) => _setLanguage(s.first),
+              onChanged: (code) {
+                if (code != null) _setLanguage(code);
+              },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _subject,
               decoration: InputDecoration(

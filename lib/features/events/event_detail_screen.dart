@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/providers.dart';
 import '../../core/assignment/secret_santa_cycle.dart';
 import '../../core/email/builtin_templates.dart';
+import '../../core/languages.dart';
 import '../../data/database.dart';
 import '../../data/events_repository.dart';
 import '../../data/templates_repository.dart';
@@ -260,13 +261,7 @@ class _EventInfoCard extends ConsumerWidget {
       if (event.place != null) (Icons.place_outlined, event.place!, false),
       if (budget != null)
         (Icons.savings_outlined, l10n.budgetUpTo(budget), false),
-      (
-        Icons.translate,
-        event.languageCode == 'es'
-            ? l10n.languageSpanish
-            : l10n.languageEnglish,
-        false,
-      ),
+      (Icons.translate, languageEndonym(event.languageCode), false),
       (Icons.subject, subject, false),
       (
         Icons.mail_outline,

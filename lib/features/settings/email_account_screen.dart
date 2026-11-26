@@ -10,6 +10,7 @@ import '../../core/util/email.dart';
 import '../../data/email_account_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/dialogs.dart';
+import '../common/format.dart';
 import 'test_email_action.dart';
 
 /// Sets up the account Santaroni sends emails from.
@@ -95,9 +96,7 @@ class _EmailAccountScreenState extends ConsumerState<EmailAccountScreen> {
     setState(() => _busy = true);
     try {
       if (!await _save(quiet: true) || !mounted) return;
-      final lang = Localizations.localeOf(context).languageCode == 'es'
-          ? 'es'
-          : 'en';
+      final lang = appLanguage(context);
       await sendTestEmail(
         context,
         ref,

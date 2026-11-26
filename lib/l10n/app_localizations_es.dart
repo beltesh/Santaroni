@@ -76,12 +76,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get languageSystem => 'Predeterminado del sistema';
 
   @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageSpanish => 'Español';
-
-  @override
   String get eventFormEditTitle => 'Editar intercambio';
 
   @override

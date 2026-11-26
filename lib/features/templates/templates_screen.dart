@@ -13,7 +13,9 @@ import '../../core/email/email_renderer.dart';
 import '../../data/database.dart';
 import '../../data/templates_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/languages.dart';
 import '../common/dialogs.dart';
+import '../common/format.dart';
 import '../settings/test_email_action.dart';
 
 const _codeStyle = TextStyle(
@@ -24,9 +26,7 @@ const _codeStyle = TextStyle(
 );
 
 String builtinTemplateLabel(AppLocalizations l10n, String languageCode) =>
-    l10n.builtinTemplateName(
-      languageCode == 'es' ? l10n.languageSpanish : l10n.languageEnglish,
-    );
+    l10n.builtinTemplateName(languageEndonym(languageCode));
 
 /// Plain-language explanation of a template problem.
 String describeProblem(AppLocalizations l10n, TemplateProblem problem) {
@@ -275,10 +275,7 @@ class TemplateDetailScreen extends ConsumerWidget {
               if (problem == null)
                 OutlinedButton.icon(
                   onPressed: () {
-                    final lang =
-                        Localizations.localeOf(context).languageCode == 'es'
-                        ? 'es'
-                        : 'en';
+                    final lang = appLanguage(context);
                     sendTestEmail(
                       context,
                       ref,
@@ -402,9 +399,7 @@ class _SamplePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lang =
-        languageCode ??
-        (Localizations.localeOf(context).languageCode == 'es' ? 'es' : 'en');
+    final lang = languageCode ?? appLanguage(context);
     final email = renderEmail(
       subject: subject ?? defaultSubject(lang),
       body: body,

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/providers.dart';
+import '../../core/languages.dart';
 import '../../data/database.dart';
 import '../../l10n/app_localizations.dart';
 import '../templates/templates_screen.dart';
@@ -30,24 +31,29 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
-          ListTile(
-            title: Text(
-              l10n.settingsLanguage,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          RadioGroup<String>(
-            groupValue: current,
-            onChanged: select,
-            child: Column(
-              children: [
-                RadioListTile(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: DropdownButtonFormField<String>(
+              key: ValueKey(current),
+              initialValue: current,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.settingsLanguage,
+                prefixIcon: const Icon(Icons.language),
+              ),
+              items: [
+                DropdownMenuItem(
                   value: _systemLanguage,
-                  title: Text(l10n.languageSystem),
+                  child: Text(l10n.languageSystem),
                 ),
-                RadioListTile(value: 'en', title: Text(l10n.languageEnglish)),
-                RadioListTile(value: 'es', title: Text(l10n.languageSpanish)),
+                // Each language in its own name, so people can find theirs.
+                for (final code in supportedLanguages)
+                  DropdownMenuItem(
+                    value: code,
+                    child: Text(languageEndonym(code)),
+                  ),
               ],
+              onChanged: select,
             ),
           ),
           const Divider(),

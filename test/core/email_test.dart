@@ -162,6 +162,28 @@ void main() {
   });
 
   group('built-in template', () {
+    test('Brazilian Portuguese reads naturally and formats the Brazilian way', () {
+      final ctx = EmailContext.sample('pt');
+      expect(ctx.eventDate, 'domingo, 20 de dezembro de 2026');
+      expect(ctx.budget, contains('R\$'));
+      expect(ctx.budget, contains('100'));
+
+      final email = renderEmail(
+        subject: defaultSubject('pt'),
+        body: builtinBody('pt'),
+        context: ctx,
+      );
+      expect(email.subject, '🎁 Amigo Secreto da Firma 2026: descubra quem você tirou');
+      expect(email.text, startsWith('Oi, João!\n\nVocê tirou Beatriz no amigo secreto! 🎁'));
+      expect(email.text, contains('Onde: Casa da Ana, Vila Madalena'));
+      expect(email.text, contains('Beatriz adoraria ganhar:\n• Livro de receitas'));
+      expect(email.text, contains('Shh… mantenha em segredo, mantenha seguro! 🤫'));
+      expect(email.html, contains('<p class="lead"'));
+      expect(email.html, contains('Você tirou'));
+      expect(email.html, contains('Feito com Santaroni'));
+      expect(email.html, contains('<html lang="pt">'));
+    });
+
     test('is an HTML email with a hand-written plain-text version', () {
       for (final lang in builtinLanguages) {
         for (final minimal in [false, true]) {

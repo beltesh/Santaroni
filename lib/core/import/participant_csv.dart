@@ -59,26 +59,30 @@ class ParticipantCsvResult {
 }
 
 /// Header names accepted for each column, compared after lowercasing and
-/// removing accents, spaces and punctuation. Covers English and Spanish, and
+/// removing accents, spaces and punctuation. Covers English, Spanish and
+/// Portuguese, and
 /// the default Google Forms headers ("Email Address", "Dirección de correo
-/// electrónico").
+/// electrónico", "Endereço de e-mail").
 const _aliases = <CsvColumn, Set<String>>{
   CsvColumn.name: {
     'name', 'fullname', 'yourname', 'participant', //
-    'nombre', 'nombrecompleto', 'tunombre', 'participante',
+    'nombre', 'nombrecompleto', 'tunombre', 'participante', //
+    'nome', 'nomecompleto', 'seunome',
   },
   CsvColumn.email: {
     'email', 'emailaddress', 'mail', 'youremail', //
     'correo', 'correoelectronico', 'direcciondecorreo',
-    'direcciondecorreoelectronico', 'tucorreo',
+    'direcciondecorreoelectronico', 'tucorreo', //
+    'enderecodeemail', 'seuemail', 'correioeletronico',
   },
   CsvColumn.wishlist: {
     'wishlist', 'wishes', 'wish', 'gifts', 'giftideas', 'ideas', //
-    'listadedeseos', 'deseos', 'regalos', 'ideasderegalo',
+    'listadedeseos', 'deseos', 'regalos', 'ideasderegalo', //
+    'listadedesejos', 'desejos', 'presentes', 'ideiasdepresente', 'sugestoes',
   },
   CsvColumn.group: {
     'group', 'household', 'exclude', 'exclusiongroup', //
-    'grupo', 'familia', 'hogar',
+    'grupo', 'familia', 'hogar', 'casa',
   },
 };
 
@@ -212,7 +216,8 @@ abstract final class ParticipantCsv {
   static String _headerKey(String header) {
     const accents = {
       'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', //
-      'ü': 'u', 'ñ': 'n',
+      'ü': 'u', 'ñ': 'n', 'à': 'a', 'â': 'a', 'ã': 'a', 'ê': 'e', //
+      'ô': 'o', 'õ': 'o', 'ç': 'c',
     };
     final lower = header.trim().toLowerCase();
     final buffer = StringBuffer();

@@ -10,6 +10,7 @@ import '../../core/import/participant_csv.dart';
 import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/dialogs.dart';
+import '../common/format.dart';
 
 /// Picks a CSV file, previews what will be imported, then imports it.
 /// Pops with the number of participants imported.
@@ -53,23 +54,35 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
 
   Future<void> _saveExample() async {
     final l10n = AppLocalizations.of(context);
-    final spanish = l10n.localeName.startsWith('es');
-    final text = spanish
-        ? 'nombre,correo,deseos,grupo\r\n'
-              'Ana,ana@example.com,"Libro de cocina https://example.com/libro\r\n'
-              'Calcetines navideños",familia-lopez\r\n'
-              'Beto,beto@example.com,,familia-lopez\r\n'
-              'Carla,carla@example.com,"Tarjeta de regalo | Taza https://example.com/taza",\r\n'
-        : 'name,email,wishlist,group\r\n'
-              'Alice,alice@example.com,"Saga Vol. 1 https://example.com/saga\r\n'
-              'Any Moebius artbook",smith\r\n'
-              'Bob,bob@example.com,,smith\r\n'
-              'Carol,carol@example.com,"Gift card | Sandman Deluxe https://example.com/sandman",\r\n';
+    final (fileName, text) = switch (appLanguage(context)) {
+      'es' => (
+        'participantes-ejemplo.csv',
+        'nombre,correo,deseos,grupo\r\n'
+            'Ana,ana@example.com,"Libro de cocina https://example.com/libro\r\n'
+            'Calcetines navideños",familia-lopez\r\n'
+            'Beto,beto@example.com,,familia-lopez\r\n'
+            'Carla,carla@example.com,"Tarjeta de regalo | Taza https://example.com/taza",\r\n',
+      ),
+      'pt' => (
+        'participantes-exemplo.csv',
+        'nome,e-mail,desejos,grupo\r\n'
+            'Ana,ana@example.com,"Livro de receitas https://example.com/livro\r\n'
+            'Meias natalinas",familia-souza\r\n'
+            'Bruno,bruno@example.com,,familia-souza\r\n'
+            'Carla,carla@example.com,"Vale-presente | Caneca https://example.com/caneca",\r\n',
+      ),
+      _ => (
+        'participants-example.csv',
+        'name,email,wishlist,group\r\n'
+            'Alice,alice@example.com,"Saga Vol. 1 https://example.com/saga\r\n'
+            'Any Moebius artbook",smith\r\n'
+            'Bob,bob@example.com,,smith\r\n'
+            'Carol,carol@example.com,"Gift card | Sandman Deluxe https://example.com/sandman",\r\n',
+      ),
+    };
     try {
       final uri = await FilePicker.saveFile(
-        fileName: spanish
-            ? 'participantes-ejemplo.csv'
-            : 'participants-example.csv',
+        fileName: fileName,
         // BOM so Excel opens accented characters correctly.
         bytes: Uint8List.fromList([0xEF, 0xBB, 0xBF, ...utf8.encode(text)]),
         mimeType: 'text/csv',

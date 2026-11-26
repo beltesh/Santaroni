@@ -236,12 +236,20 @@ void main() {
         tester.widget<TextFormField>(subject).controller!.text;
     expect(subjectText(), '🎁 Your Secret Santa assignment for {{EventName}}');
 
-    // Untouched default follows the email language.
-    await tester.tap(find.text('Español'));
-    await settle(tester);
+    // Untouched default follows the email language (picked from a dropdown).
+    Future<void> pickLanguage(String current, String next) async {
+      await tester.tap(find.text(current));
+      await settle(tester);
+      await tester.tap(find.text(next).last);
+      await settle(tester);
+    }
+
+    await pickLanguage('English', 'Español');
     expect(subjectText(), '🎁 {{EventName}}: descubre a quién te tocó regalar');
-    await tester.tap(find.text('English'));
-    await settle(tester);
+    await pickLanguage('Español', 'Português (Brasil)');
+    expect(subjectText(), '🎁 {{EventName}}: descubra quem você tirou');
+    await pickLanguage('Português (Brasil)', 'English');
+    expect(subjectText(), '🎁 Your Secret Santa assignment for {{EventName}}');
 
     // A typo in a variable blocks saving.
     await tester.enterText(find.byType(TextFormField).first, 'Party');
@@ -259,6 +267,40 @@ void main() {
 
     final events = await tester.runAsync(() => db.select(db.events).get());
     expect(events!.single.emailSubject, 'Shh, {{GiverName}}! {{EventName}}');
+  });
+
+  testWidgets('switch the app to Brazilian Portuguese from Settings', (
+    tester,
+  ) async {
+    useTallScreen(tester);
+    final db = _memoryDb();
+    addTearDown(db.close);
+    await tester.pumpWidget(_app(db));
+    await settle(tester);
+    expect(find.text('No events yet'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Settings'));
+    await settle(tester);
+    await tester.tap(find.text('System default'));
+    await settle(tester);
+    // All three languages are offered, each in its own name.
+    expect(find.text('English'), findsWidgets);
+    expect(find.text('Español'), findsWidgets);
+    await tester.tap(find.text('Português (Brasil)').last);
+    await settle(tester);
+
+    expect(find.text('Configurações'), findsOneWidget);
+    expect(find.text('Idioma'), findsOneWidget);
+    final saved = await tester.runAsync(
+      () => db.getSetting(SettingKeys.languageCode),
+    );
+    expect(saved, 'pt');
+
+    // Flutter's own labels switch too: the back arrow says "Voltar".
+    await tester.tap(find.byTooltip('Voltar'));
+    await settle(tester);
+    expect(find.text('Nenhum amigo secreto ainda'), findsOneWidget);
+    expect(find.text('Novo amigo secreto'), findsOneWidget);
   });
 
   testWidgets('event list renders dates and budgets in Spanish', (

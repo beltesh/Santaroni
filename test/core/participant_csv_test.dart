@@ -66,6 +66,20 @@ void main() {
       );
     });
 
+    test('maps Portuguese headers, including Google Forms in Portuguese', () {
+      const text =
+          'Carimbo de data/hora,Endereço de e-mail,Seu nome,Lista de desejos,Família\n'
+          '01/11/2026 10:00,joao@example.com,João,"Livro\nMeias",souza\n';
+      final result = ParticipantCsv.parse(text);
+      expect(result.missingColumns, isEmpty);
+      final p = result.participants.single;
+      expect((p.name, p.email, p.group), ('João', 'joao@example.com', 'souza'));
+      expect(p.wishlist.map((w) => w.text), ['Livro', 'Meias']);
+
+      final simple = ParticipantCsv.parse('nome;e-mail;desejos;grupo\nAna;ana@example.com;;\n');
+      expect(simple.participants.single.name, 'Ana');
+    });
+
     test('handles semicolons, BOM, CRLF and Spanish headers', () {
       const text =
           '﻿Nombre;Correo electrónico;Lista de deseos;Grupo\r\n'

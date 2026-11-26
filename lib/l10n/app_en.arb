@@ -29,8 +29,6 @@
   "settings": "Settings",
   "settingsLanguage": "Language",
   "languageSystem": "System default",
-  "languageEnglish": "English",
-  "languageSpanish": "Español",
 
   "eventFormEditTitle": "Edit event",
   "eventName": "Event name",
