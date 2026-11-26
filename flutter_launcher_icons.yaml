@@ -1,0 +1,13 @@
+# Generates the Android launcher icons: dart run flutter_launcher_icons
+# (The Windows .ico is multi-size and generated separately; see
+# assets/icons/README.md.)
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/icons/santaroni-full.png
+  min_sdk_android: 24
+  adaptive_icon_background: "#7F030E"
+  adaptive_icon_foreground: assets/icons/santaroni-foreground.png
+  # The foreground PNG is already padded to Android's safe zone.
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: assets/icons/santaroni-monochrome.png
