@@ -1,4 +1,4 @@
-package com.santaroni.santaroni
+package com.luxaeternasoft.santaroni
 
 import io.flutter.embedding.android.FlutterActivity
 

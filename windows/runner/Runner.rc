@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Santaroni" "\0"
+            VALUE "CompanyName", "Lux Aeterna Soft" "\0"
             VALUE "FileDescription", "Santaroni" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "santaroni" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Santaroni contributors. Licensed under GPL-3.0." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Lux Aeterna Soft. Licensed under GPL-3.0." "\0"
             VALUE "OriginalFilename", "santaroni.exe" "\0"
             VALUE "ProductName", "Santaroni" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

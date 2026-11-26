@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.santaroni.santaroni"
+    namespace = "com.luxaeternasoft.santaroni"
     compileSdk = flutter.compileSdkVersion
     // Pinned to the installed side-by-side NDK (Flutter default 28.2 is not available).
     ndkVersion = "30.0.16248370"
@@ -16,8 +16,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.santaroni.santaroni"
+        applicationId = "com.luxaeternasoft.santaroni"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
