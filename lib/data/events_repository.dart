@@ -125,6 +125,22 @@ class EventLockedException implements Exception {
   const EventLockedException();
 }
 
+/// Thrown when trying to change an event that is completed (see
+/// [EventCompletion.isCompletedAt]). Completed events are read-only.
+class EventCompletedException implements Exception {
+  const EventCompletedException();
+}
+
+extension EventCompletion on Event {
+  /// Done: its date has passed, or (for an event without a date) it was
+  /// marked completed. Completed events are read-only.
+  bool isCompletedAt(DateTime now) {
+    final date = eventDate;
+    if (date == null) return archived;
+    return date.isBefore(DateTime(now.year, now.month, now.day));
+  }
+}
+
 class DuplicateEmailException implements Exception {
   const DuplicateEmailException(this.email);
   final String email;
@@ -164,9 +180,21 @@ class EventsRepository {
   Future<int> createEvent(EventDraft draft) =>
       _db.into(_db.events).insert(draft.toCompanion());
 
-  Future<void> updateEvent(int id, EventDraft draft) => (_db.update(
-    _db.events,
-  )..where((e) => e.id.equals(id))).write(draft.toCompanion());
+  /// Completed events are read-only: an event marked completed must be
+  /// moved back to ongoing before it can be edited.
+  Future<void> updateEvent(int id, EventDraft draft) =>
+      _db.transaction(() async {
+        await _ensureNotCompleted(id);
+        await (_db.update(
+          _db.events,
+        )..where((e) => e.id.equals(id))).write(draft.toCompanion());
+      });
+
+  /// Manually moves an event without a date to (or back from) Completed.
+  Future<void> setArchived(int id, {required bool archived}) =>
+      (_db.update(_db.events)..where((e) => e.id.equals(id))).write(
+        EventsCompanion(archived: Value(archived)),
+      );
 
   Future<void> deleteEvent(int id) =>
       (_db.delete(_db.events)..where((e) => e.id.equals(id))).go();
@@ -238,6 +266,7 @@ class EventsRepository {
         final existing = await (_db.select(
           _db.participants,
         )..where((p) => p.id.equals(id))).getSingle();
+        await _ensureNotCompleted(existing.eventId);
         await _ensureUniqueEmail(
           existing.eventId,
           draft.email,
@@ -289,6 +318,7 @@ class EventsRepository {
   /// once emails have gone out.
   Future<void> drawNames(int eventId, {Random? random}) =>
       _db.transaction(() async {
+        await _ensureNotCompleted(eventId);
         final event = await _event(eventId);
         if (event.status == EventStatus.sending ||
             event.status == EventStatus.sent) {
@@ -414,7 +444,15 @@ class EventsRepository {
   /// Before adding/removing people: drafts are free to change; generated
   /// (but unsent) assignments are discarded; once sending has started the
   /// roster is locked.
+  /// Throws [EventCompletedException] if [eventId] is completed.
+  Future<void> _ensureNotCompleted(int eventId) async {
+    if ((await _event(eventId)).isCompletedAt(DateTime.now())) {
+      throw const EventCompletedException();
+    }
+  }
+
   Future<void> _beforeRosterChange(int eventId) async {
+    await _ensureNotCompleted(eventId);
     final event = await _event(eventId);
     switch (event.status) {
       case EventStatus.draft:

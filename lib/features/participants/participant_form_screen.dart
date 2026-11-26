@@ -127,6 +127,9 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
         _saving = false;
         _emailError = l10n.emailDuplicate;
       });
+    } on EventCompletedException {
+      setState(() => _saving = false);
+      if (mounted) showSnack(context, l10n.eventCompletedError);
     } on EventLockedException {
       setState(() => _saving = false);
       if (mounted) showSnack(context, l10n.eventLockedError);
@@ -147,6 +150,8 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
     try {
       await ref.read(eventsRepositoryProvider).deleteParticipant(p.id);
       navigator.pop();
+    } on EventCompletedException {
+      if (mounted) showSnack(context, l10n.eventCompletedError);
     } on EventLockedException {
       if (mounted) showSnack(context, l10n.eventLockedError);
     }

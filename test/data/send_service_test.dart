@@ -47,7 +47,7 @@ void main() {
         name: 'Office Party',
         place: 'The roof',
         budgetMinor: 2500,
-        date: DateTime(2026, 12, 20),
+        date: DateTime(2099, 12, 20),
       ),
     );
     for (final n in names) {

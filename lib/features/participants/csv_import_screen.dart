@@ -112,6 +112,8 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
         ],
       );
       navigator.pop(result.participants.length);
+    } on EventCompletedException {
+      if (mounted) showSnack(context, l10n.eventCompletedError);
     } on EventLockedException {
       if (mounted) showSnack(context, l10n.eventLockedError);
     } on DuplicateEmailException catch (e) {

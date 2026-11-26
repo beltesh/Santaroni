@@ -87,6 +87,10 @@ class Events extends Table {
   /// subject for [languageCode].
   TextColumn get emailSubject => text().nullable()();
 
+  /// Manually moved to "Completed". Only used for events without a date;
+  /// dated events are completed once their date has passed.
+  BoolColumn get archived => boolean().withDefault(const Constant(false))();
+
   TextColumn get status =>
       textEnum<EventStatus>().withDefault(Constant(EventStatus.draft.name))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -167,7 +171,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -180,6 +184,9 @@ class AppDatabase extends _$AppDatabase {
         await m.deleteTable('email_templates');
         await m.createTable(emailTemplates);
         await m.addColumn(events, events.emailSubject);
+      }
+      if (from < 3) {
+        await m.addColumn(events, events.archived);
       }
     },
     beforeOpen: (details) async {

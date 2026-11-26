@@ -40,6 +40,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeEmptyBody => 'Crea tu primer intercambio para empezar.';
 
   @override
+  String get homeOngoing => 'En curso';
+
+  @override
+  String get homeOngoingEmpty =>
+      'No hay nada próximo. Crea un nuevo intercambio para empezar.';
+
+  @override
+  String get homeCompleted => 'Terminados';
+
+  @override
+  String get markCompleted => 'Marcar como terminado';
+
+  @override
+  String get markOngoing => 'Regresar a En curso';
+
+  @override
+  String get movedToCompleted => 'Se movió a Terminados';
+
+  @override
+  String get movedToOngoing => 'Se regresó a En curso';
+
+  @override
+  String get completedReadOnlyDated =>
+      'Este intercambio terminó porque su fecha ya pasó, así que ya no se puede modificar. Aún puedes revisar el sorteo, exportar un respaldo o eliminarlo.';
+
+  @override
+  String get completedReadOnlyArchived =>
+      'Este intercambio está marcado como terminado, así que no se puede modificar. Para hacer cambios, regrésalo a En curso desde el menú ⋮.';
+
+  @override
+  String get completedDrawBody =>
+      'El sorteo se conserva como referencia. Aún puedes revisarlo o exportar un respaldo.';
+
+  @override
+  String get eventCompletedError =>
+      'Este intercambio ya terminó y no se puede modificar.';
+
+  @override
   String get newEvent => 'Nuevo intercambio';
 
   @override
@@ -110,6 +148,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get eventDate => 'Fecha';
+
+  @override
+  String get eventDatePast => 'Elige hoy o una fecha posterior.';
+
+  @override
+  String get eventDateHelp =>
+      'El intercambio pasa a Terminados automáticamente cuando esta fecha haya pasado.';
 
   @override
   String get eventTime => 'Hora';

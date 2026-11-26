@@ -742,6 +742,21 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _archivedMeta = const VerificationMeta(
+    'archived',
+  );
+  @override
+  late final GeneratedColumn<bool> archived = GeneratedColumn<bool>(
+    'archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<EventStatus, String> status =
       GeneratedColumn<String>(
@@ -777,6 +792,7 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     languageCode,
     templateId,
     emailSubject,
+    archived,
     status,
     createdAt,
   ];
@@ -868,6 +884,12 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         ),
       );
     }
+    if (data.containsKey('archived')) {
+      context.handle(
+        _archivedMeta,
+        archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -927,6 +949,10 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         DriftSqlType.string,
         data['${effectivePrefix}email_subject'],
       ),
+      archived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}archived'],
+      )!,
       status: $EventsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -979,6 +1005,10 @@ class Event extends DataClass implements Insertable<Event> {
   /// Subject line, may contain `{{Variables}}`. Null means the default
   /// subject for [languageCode].
   final String? emailSubject;
+
+  /// Manually moved to "Completed". Only used for events without a date;
+  /// dated events are completed once their date has passed.
+  final bool archived;
   final EventStatus status;
   final DateTime createdAt;
   const Event({
@@ -993,6 +1023,7 @@ class Event extends DataClass implements Insertable<Event> {
     required this.languageCode,
     this.templateId,
     this.emailSubject,
+    required this.archived,
     required this.status,
     required this.createdAt,
   });
@@ -1022,6 +1053,7 @@ class Event extends DataClass implements Insertable<Event> {
     if (!nullToAbsent || emailSubject != null) {
       map['email_subject'] = Variable<String>(emailSubject);
     }
+    map['archived'] = Variable<bool>(archived);
     {
       map['status'] = Variable<String>(
         $EventsTable.$converterstatus.toSql(status),
@@ -1056,6 +1088,7 @@ class Event extends DataClass implements Insertable<Event> {
       emailSubject: emailSubject == null && nullToAbsent
           ? const Value.absent()
           : Value(emailSubject),
+      archived: Value(archived),
       status: Value(status),
       createdAt: Value(createdAt),
     );
@@ -1078,6 +1111,7 @@ class Event extends DataClass implements Insertable<Event> {
       languageCode: serializer.fromJson<String>(json['languageCode']),
       templateId: serializer.fromJson<int?>(json['templateId']),
       emailSubject: serializer.fromJson<String?>(json['emailSubject']),
+      archived: serializer.fromJson<bool>(json['archived']),
       status: $EventsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -1099,6 +1133,7 @@ class Event extends DataClass implements Insertable<Event> {
       'languageCode': serializer.toJson<String>(languageCode),
       'templateId': serializer.toJson<int?>(templateId),
       'emailSubject': serializer.toJson<String?>(emailSubject),
+      'archived': serializer.toJson<bool>(archived),
       'status': serializer.toJson<String>(
         $EventsTable.$converterstatus.toJson(status),
       ),
@@ -1118,6 +1153,7 @@ class Event extends DataClass implements Insertable<Event> {
     String? languageCode,
     Value<int?> templateId = const Value.absent(),
     Value<String?> emailSubject = const Value.absent(),
+    bool? archived,
     EventStatus? status,
     DateTime? createdAt,
   }) => Event(
@@ -1132,6 +1168,7 @@ class Event extends DataClass implements Insertable<Event> {
     languageCode: languageCode ?? this.languageCode,
     templateId: templateId.present ? templateId.value : this.templateId,
     emailSubject: emailSubject.present ? emailSubject.value : this.emailSubject,
+    archived: archived ?? this.archived,
     status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1156,6 +1193,7 @@ class Event extends DataClass implements Insertable<Event> {
       emailSubject: data.emailSubject.present
           ? data.emailSubject.value
           : this.emailSubject,
+      archived: data.archived.present ? data.archived.value : this.archived,
       status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -1175,6 +1213,7 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('languageCode: $languageCode, ')
           ..write('templateId: $templateId, ')
           ..write('emailSubject: $emailSubject, ')
+          ..write('archived: $archived, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1194,6 +1233,7 @@ class Event extends DataClass implements Insertable<Event> {
     languageCode,
     templateId,
     emailSubject,
+    archived,
     status,
     createdAt,
   );
@@ -1212,6 +1252,7 @@ class Event extends DataClass implements Insertable<Event> {
           other.languageCode == this.languageCode &&
           other.templateId == this.templateId &&
           other.emailSubject == this.emailSubject &&
+          other.archived == this.archived &&
           other.status == this.status &&
           other.createdAt == this.createdAt);
 }
@@ -1228,6 +1269,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<String> languageCode;
   final Value<int?> templateId;
   final Value<String?> emailSubject;
+  final Value<bool> archived;
   final Value<EventStatus> status;
   final Value<DateTime> createdAt;
   const EventsCompanion({
@@ -1242,6 +1284,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.languageCode = const Value.absent(),
     this.templateId = const Value.absent(),
     this.emailSubject = const Value.absent(),
+    this.archived = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -1257,6 +1300,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.languageCode = const Value.absent(),
     this.templateId = const Value.absent(),
     this.emailSubject = const Value.absent(),
+    this.archived = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
@@ -1273,6 +1317,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<String>? languageCode,
     Expression<int>? templateId,
     Expression<String>? emailSubject,
+    Expression<bool>? archived,
     Expression<String>? status,
     Expression<DateTime>? createdAt,
   }) {
@@ -1288,6 +1333,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (languageCode != null) 'language_code': languageCode,
       if (templateId != null) 'template_id': templateId,
       if (emailSubject != null) 'email_subject': emailSubject,
+      if (archived != null) 'archived': archived,
       if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -1305,6 +1351,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Value<String>? languageCode,
     Value<int?>? templateId,
     Value<String?>? emailSubject,
+    Value<bool>? archived,
     Value<EventStatus>? status,
     Value<DateTime>? createdAt,
   }) {
@@ -1320,6 +1367,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       languageCode: languageCode ?? this.languageCode,
       templateId: templateId ?? this.templateId,
       emailSubject: emailSubject ?? this.emailSubject,
+      archived: archived ?? this.archived,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -1361,6 +1409,9 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (emailSubject.present) {
       map['email_subject'] = Variable<String>(emailSubject.value);
     }
+    if (archived.present) {
+      map['archived'] = Variable<bool>(archived.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $EventsTable.$converterstatus.toSql(status.value),
@@ -1386,6 +1437,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('languageCode: $languageCode, ')
           ..write('templateId: $templateId, ')
           ..write('emailSubject: $emailSubject, ')
+          ..write('archived: $archived, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -3074,6 +3126,7 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<String> languageCode,
   Value<int?> templateId,
   Value<String?> emailSubject,
+  Value<bool> archived,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3089,6 +3142,7 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<String> languageCode,
   Value<int?> templateId,
   Value<String?> emailSubject,
+  Value<bool> archived,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3207,6 +3261,11 @@ class $$EventsTableFilterComposer
 
   ColumnFilters<String> get emailSubject => $composableBuilder(
     column: $table.emailSubject,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get archived => $composableBuilder(
+    column: $table.archived,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3354,6 +3413,11 @@ class $$EventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -3432,6 +3496,9 @@ class $$EventsTableAnnotationComposer
     column: $table.emailSubject,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get archived =>
+      $composableBuilder(column: $table.archived, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<EventStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -3556,6 +3623,7 @@ class $$EventsTableTableManager
                 Value<String> languageCode = const Value.absent(),
                 Value<int?> templateId = const Value.absent(),
                 Value<String?> emailSubject = const Value.absent(),
+                Value<bool> archived = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion(
@@ -3570,6 +3638,7 @@ class $$EventsTableTableManager
                 languageCode: languageCode,
                 templateId: templateId,
                 emailSubject: emailSubject,
+                archived: archived,
                 status: status,
                 createdAt: createdAt,
               ),
@@ -3586,6 +3655,7 @@ class $$EventsTableTableManager
                 Value<String> languageCode = const Value.absent(),
                 Value<int?> templateId = const Value.absent(),
                 Value<String?> emailSubject = const Value.absent(),
+                Value<bool> archived = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion.insert(
@@ -3600,6 +3670,7 @@ class $$EventsTableTableManager
                 languageCode: languageCode,
                 templateId: templateId,
                 emailSubject: emailSubject,
+                archived: archived,
                 status: status,
                 createdAt: createdAt,
               ),

@@ -40,6 +40,44 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeEmptyBody => 'Crie seu primeiro amigo secreto para começar.';
 
   @override
+  String get homeOngoing => 'Em andamento';
+
+  @override
+  String get homeOngoingEmpty =>
+      'Nada por vir. Crie um novo amigo secreto para começar.';
+
+  @override
+  String get homeCompleted => 'Concluídos';
+
+  @override
+  String get markCompleted => 'Marcar como concluído';
+
+  @override
+  String get markOngoing => 'Voltar para Em andamento';
+
+  @override
+  String get movedToCompleted => 'Movido para Concluídos';
+
+  @override
+  String get movedToOngoing => 'Voltou para Em andamento';
+
+  @override
+  String get completedReadOnlyDated =>
+      'Este amigo secreto foi concluído porque a data já passou, então não pode mais ser alterado. Você ainda pode conferir o sorteio, exportar um backup ou excluí-lo.';
+
+  @override
+  String get completedReadOnlyArchived =>
+      'Este amigo secreto está marcado como concluído, então não pode ser alterado. Para fazer mudanças, volte-o para Em andamento pelo menu ⋮.';
+
+  @override
+  String get completedDrawBody =>
+      'O sorteio fica guardado para consulta. Você ainda pode conferi-lo ou exportar um backup.';
+
+  @override
+  String get eventCompletedError =>
+      'Este amigo secreto já foi concluído e não pode ser alterado.';
+
+  @override
   String get newEvent => 'Novo amigo secreto';
 
   @override
@@ -110,6 +148,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get eventDate => 'Data';
+
+  @override
+  String get eventDatePast => 'Escolha hoje ou uma data futura.';
+
+  @override
+  String get eventDateHelp =>
+      'O amigo secreto vai para Concluídos automaticamente depois que esta data passar.';
 
   @override
   String get eventTime => 'Horário';

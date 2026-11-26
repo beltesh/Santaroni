@@ -18,10 +18,14 @@ class DrawCard extends ConsumerStatefulWidget {
     super.key,
     required this.event,
     required this.participantCount,
+    this.readOnly = false,
   });
 
   final Event event;
   final int participantCount;
+
+  /// Completed events: only reviewing the draw is offered.
+  final bool readOnly;
 
   @override
   ConsumerState<DrawCard> createState() => _DrawCardState();
@@ -66,6 +70,8 @@ class _DrawCardState extends ConsumerState<DrawCard> {
           ],
         ),
       );
+    } on EventCompletedException {
+      if (mounted) showSnack(context, l10n.eventCompletedError);
     } on EventLockedException {
       if (mounted) showSnack(context, l10n.eventLockedError);
     } finally {
@@ -84,6 +90,9 @@ class _DrawCardState extends ConsumerState<DrawCard> {
         event.status == EventStatus.generated;
     final enoughPeople =
         widget.participantCount >= SecretSantaCycle.minParticipants;
+    final readOnly = widget.readOnly;
+    // A completed event that never had a draw has nothing to show here.
+    if (readOnly && !drawn) return const SizedBox.shrink();
 
     return Card(
       color: drawn ? theme.colorScheme.primaryContainer : null,
@@ -109,7 +118,7 @@ class _DrawCardState extends ConsumerState<DrawCard> {
                     EventStatus.sent => l10n.allEmailsSent,
                   }, style: theme.textTheme.titleMedium),
                 ),
-                if (drawn) ...[
+                if (drawn && !readOnly) ...[
                   const SizedBox(width: 8),
                   _SendButton(event: event),
                 ],
@@ -117,6 +126,7 @@ class _DrawCardState extends ConsumerState<DrawCard> {
             ),
             const SizedBox(height: 8),
             Text(switch (event.status) {
+              _ when readOnly => l10n.completedDrawBody,
               EventStatus.draft => l10n.drawReadyBody,
               EventStatus.generated => l10n.drawDoneBody,
               EventStatus.sending => l10n.sendPartlyBody,
@@ -143,7 +153,7 @@ class _DrawCardState extends ConsumerState<DrawCard> {
                     icon: const Icon(Icons.visibility_off_outlined),
                     label: Text(l10n.reviewDraw),
                   ),
-                  if (canEdit)
+                  if (canEdit && !readOnly)
                     OutlinedButton.icon(
                       onPressed: _busy
                           ? null

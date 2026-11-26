@@ -7,11 +7,13 @@ import '../../core/util/currency.dart';
 import '../../data/database.dart';
 import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../common/dialogs.dart';
 import '../common/format.dart';
 import '../../core/email/builtin_templates.dart';
 import '../../core/email/email_renderer.dart';
 import '../../data/templates_repository.dart';
 import '../templates/templates_screen.dart';
+import 'event_dates.dart';
 import 'event_detail_screen.dart';
 
 /// Creates a new event, or edits [event] when given.
@@ -30,6 +32,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late final TextEditingController _place;
   late final TextEditingController _budget;
   DateTime? _date;
+  String? _dateError;
   TimeOfDay? _time;
   late String _currency;
   String? _language;
@@ -100,19 +103,28 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final christmasEve = DateTime(now.year, 12, 24);
-    final initial = _date ?? (christmasEve.isBefore(now) ? now : christmasEve);
-    var first = DateTime(now.year - 1);
-    if (initial.isBefore(first)) first = initial;
+    // Past days are greyed out: events can only be scheduled from today on.
+    final range = eventDatePickerRange(DateTime.now(), _date);
     final picked = await showDatePicker(
       context: context,
-      initialDate: initial,
-      firstDate: first,
-      lastDate: DateTime(now.year + 5),
+      initialDate: range.initial,
+      firstDate: range.first,
+      lastDate: range.last,
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked != null) {
+      setState(() {
+        _date = picked;
+        _dateError = null;
+      });
+    }
   }
+
+  /// A past date is only allowed if it's the date the event already had
+  /// (editing an event that has happened, e.g. to fix a typo).
+  bool _dateAllowed() =>
+      _date == null ||
+      !isPastDate(_date!, DateTime.now()) ||
+      isSameDay(_date, widget.event?.eventDate);
 
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
@@ -123,7 +135,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    final dateOk = _dateAllowed();
+    setState(
+      () => _dateError = dateOk
+          ? null
+          : AppLocalizations.of(context).eventDatePast,
+    );
+    if (!_formKey.currentState!.validate() || !dateOk) return;
     setState(() => _saving = true);
 
     final draft = EventDraft(
@@ -144,7 +162,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     final navigator = Navigator.of(context);
 
     if (_isEditing) {
-      await repo.updateEvent(widget.event!.id, draft);
+      try {
+        await repo.updateEvent(widget.event!.id, draft);
+      } on EventCompletedException {
+        if (!mounted) return;
+        setState(() => _saving = false);
+        showSnack(context, AppLocalizations.of(context).eventCompletedError);
+        return;
+      }
       navigator.pop();
     } else {
       final id = await repo.createEvent(draft);
@@ -187,9 +212,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   child: _PickerField(
                     label: l10n.eventDate,
                     icon: Icons.event_outlined,
+                    help: l10n.eventDateHelp,
                     value: _date == null ? null : formatDate(context, _date!),
+                    errorText: _dateError,
                     onTap: _pickDate,
-                    onClear: () => setState(() => _date = null),
+                    onClear: () => setState(() {
+                      _date = null;
+                      _dateError = null;
+                    }),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -383,6 +413,8 @@ class _PickerField extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.value,
+    this.errorText,
+    this.help,
     required this.onTap,
     required this.onClear,
   });
@@ -390,6 +422,10 @@ class _PickerField extends StatelessWidget {
   final String label;
   final IconData icon;
   final String? value;
+  final String? errorText;
+
+  /// Optional explanation, shown from a small help icon next to the label.
+  final String? help;
   final VoidCallback onTap;
   final VoidCallback onClear;
 
@@ -402,9 +438,27 @@ class _PickerField extends StatelessWidget {
       child: InputDecorator(
         isEmpty: value == null,
         decoration: InputDecoration(
-          labelText: label,
+          label: help == null
+              ? Text(label)
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(label, overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 4),
+                    Tooltip(
+                      message: help,
+                      triggerMode: TooltipTriggerMode.tap,
+                      showDuration: const Duration(seconds: 6),
+                      child: const Icon(Icons.help_outline, size: 16),
+                    ),
+                  ],
+                ),
           hintText: l10n.optional,
           prefixIcon: Icon(icon),
+          errorText: errorText,
+          errorMaxLines: 2,
           suffixIcon: value == null
               ? null
               : IconButton(

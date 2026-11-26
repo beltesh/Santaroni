@@ -160,6 +160,72 @@ abstract class AppLocalizations {
   /// **'Create your first Secret Santa to get started.'**
   String get homeEmptyBody;
 
+  /// No description provided for @homeOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get homeOngoing;
+
+  /// No description provided for @homeOngoingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing coming up. Create a new Secret Santa to get started.'**
+  String get homeOngoingEmpty;
+
+  /// No description provided for @homeCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get homeCompleted;
+
+  /// No description provided for @markCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as completed'**
+  String get markCompleted;
+
+  /// No description provided for @markOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Move back to ongoing'**
+  String get markOngoing;
+
+  /// No description provided for @movedToCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to Completed'**
+  String get movedToCompleted;
+
+  /// No description provided for @movedToOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved back to Ongoing'**
+  String get movedToOngoing;
+
+  /// No description provided for @completedReadOnlyDated.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is completed because its date has passed, so it can no longer be changed. You can still review the draw, export a backup or delete it.'**
+  String get completedReadOnlyDated;
+
+  /// No description provided for @completedReadOnlyArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is marked as completed, so it can\'t be changed. To make changes, move it back to ongoing from the ⋮ menu.'**
+  String get completedReadOnlyArchived;
+
+  /// No description provided for @completedDrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The draw is kept for reference. You can still review it or export a backup.'**
+  String get completedDrawBody;
+
+  /// No description provided for @eventCompletedError.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is completed and can\'t be changed.'**
+  String get eventCompletedError;
+
   /// No description provided for @newEvent.
   ///
   /// In en, this message translates to:
@@ -285,6 +351,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get eventDate;
+
+  /// No description provided for @eventDatePast.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick today or a later date.'**
+  String get eventDatePast;
+
+  /// No description provided for @eventDateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Events move to Completed automatically once this date has passed.'**
+  String get eventDateHelp;
 
   /// No description provided for @eventTime.
   ///

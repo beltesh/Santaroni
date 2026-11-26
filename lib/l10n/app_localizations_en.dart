@@ -40,6 +40,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEmptyBody => 'Create your first Secret Santa to get started.';
 
   @override
+  String get homeOngoing => 'Ongoing';
+
+  @override
+  String get homeOngoingEmpty =>
+      'Nothing coming up. Create a new Secret Santa to get started.';
+
+  @override
+  String get homeCompleted => 'Completed';
+
+  @override
+  String get markCompleted => 'Mark as completed';
+
+  @override
+  String get markOngoing => 'Move back to ongoing';
+
+  @override
+  String get movedToCompleted => 'Moved to Completed';
+
+  @override
+  String get movedToOngoing => 'Moved back to Ongoing';
+
+  @override
+  String get completedReadOnlyDated =>
+      'This event is completed because its date has passed, so it can no longer be changed. You can still review the draw, export a backup or delete it.';
+
+  @override
+  String get completedReadOnlyArchived =>
+      'This event is marked as completed, so it can\'t be changed. To make changes, move it back to ongoing from the ⋮ menu.';
+
+  @override
+  String get completedDrawBody =>
+      'The draw is kept for reference. You can still review it or export a backup.';
+
+  @override
+  String get eventCompletedError =>
+      'This event is completed and can\'t be changed.';
+
+  @override
   String get newEvent => 'New Secret Santa';
 
   @override
@@ -110,6 +148,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventDate => 'Date';
+
+  @override
+  String get eventDatePast => 'Pick today or a later date.';
+
+  @override
+  String get eventDateHelp =>
+      'Events move to Completed automatically once this date has passed.';
 
   @override
   String get eventTime => 'Time';

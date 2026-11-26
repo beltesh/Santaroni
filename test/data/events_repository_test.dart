@@ -274,4 +274,48 @@ void main() {
       );
     });
   });
+
+  group('completed events are read-only', () {
+    Future<int> withPeople() async {
+      for (final n in ['Ana', 'Beto', 'Carla']) {
+        await repo.addParticipant(eventId, person(n));
+      }
+      return (await repo.watchParticipants(eventId).first).first.participant.id;
+    }
+
+    Future<void> expectReadOnly(int participantId) async {
+      for (final action in <Future<Object?> Function()>[
+        () => repo.updateEvent(eventId, const EventDraft(name: 'New name')),
+        () => repo.addParticipant(eventId, person('Dani')),
+        () => repo.importParticipants(eventId, [person('Eva')]),
+        () => repo.updateParticipant(participantId, person('Ana')),
+        () => repo.deleteParticipant(participantId),
+        () => repo.deleteAllParticipants(eventId),
+        () => repo.drawNames(eventId),
+      ]) {
+        await expectLater(action(), throwsA(isA<EventCompletedException>()));
+      }
+    }
+
+    test('once marked completed, until moved back to ongoing', () async {
+      final ana = await withPeople();
+      await repo.setArchived(eventId, archived: true);
+      await expectReadOnly(ana);
+
+      await repo.setArchived(eventId, archived: false);
+      await repo.updateEvent(eventId, const EventDraft(name: 'Editable again'));
+      expect((await repo.watchEvent(eventId).first)!.name, 'Editable again');
+    });
+
+    test('once its date has passed', () async {
+      final ana = await withPeople();
+      await (db.update(db.events)..where((e) => e.id.equals(eventId))).write(
+        EventsCompanion(eventDate: Value(DateTime(2020, 12, 20))),
+      );
+      await expectReadOnly(ana);
+      // Deleting is still allowed.
+      await repo.deleteEvent(eventId);
+      expect(await repo.watchEvent(eventId).first, isNull);
+    });
+  });
 }

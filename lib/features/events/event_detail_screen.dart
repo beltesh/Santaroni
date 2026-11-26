@@ -61,6 +61,21 @@ class EventDetailScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _setArchived(
+    BuildContext context,
+    WidgetRef ref,
+    Event event,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final archive = !event.archived;
+    await ref
+        .read(eventsRepositoryProvider)
+        .setArchived(event.id, archived: archive);
+    if (context.mounted) {
+      showSnack(context, archive ? l10n.movedToCompleted : l10n.movedToOngoing);
+    }
+  }
+
   Future<void> _removeAll(
     BuildContext context,
     WidgetRef ref,
@@ -80,6 +95,8 @@ class EventDetailScreen extends ConsumerWidget {
     if (!confirmed || !context.mounted) return;
     try {
       await ref.read(eventsRepositoryProvider).deleteAllParticipants(event.id);
+    } on EventCompletedException {
+      if (context.mounted) showSnack(context, l10n.eventCompletedError);
     } on EventLockedException {
       if (context.mounted) showSnack(context, l10n.eventLockedError);
     }
@@ -108,7 +125,9 @@ class EventDetailScreen extends ConsumerWidget {
       );
     }
 
-    final locked = _isLocked(event);
+    // Completed events (date passed, or marked completed) are read-only.
+    final completed = event.isCompletedAt(DateTime.now());
+    final locked = _isLocked(event) || completed;
     final list = participants.value ?? const <ParticipantWithWishlist>[];
 
     return Scaffold(
@@ -120,19 +139,36 @@ class EventDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.save_alt),
             onPressed: () => exportEvent(context, ref, event),
           ),
-          IconButton(
-            tooltip: l10n.edit,
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => EventFormScreen(event: event),
+          if (!completed)
+            IconButton(
+              tooltip: l10n.edit,
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => EventFormScreen(event: event),
+                ),
               ),
             ),
-          ),
           PopupMenuButton<void>(
             // Use the screen's context, not the menu's: the menu is gone by
             // the time the confirmation dialog opens.
             itemBuilder: (_) => [
+              // Events without a date don't complete on their own.
+              if (event.eventDate == null)
+                PopupMenuItem(
+                  onTap: () => _setArchived(context, ref, event),
+                  child: ListTile(
+                    leading: Icon(
+                      event.archived
+                          ? Icons.unarchive_outlined
+                          : Icons.archive_outlined,
+                    ),
+                    title: Text(
+                      event.archived ? l10n.markOngoing : l10n.markCompleted,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 onTap: () => _delete(context, ref, event),
                 child: ListTile(
@@ -149,13 +185,26 @@ class EventDetailScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           _EventInfoCard(event: event),
-          if (event.status != EventStatus.sent) const AccountNeededBanner(),
-          if (locked) ...[
+          if (!completed && event.status != EventStatus.sent)
+            const AccountNeededBanner(),
+          if (completed) ...[
+            const SizedBox(height: 12),
+            _Banner(
+              icon: Icons.inventory_2_outlined,
+              text: event.eventDate == null
+                  ? l10n.completedReadOnlyArchived
+                  : l10n.completedReadOnlyDated,
+            ),
+          ] else if (locked) ...[
             const SizedBox(height: 12),
             _Banner(icon: Icons.lock_outline, text: l10n.eventLockedBanner),
           ],
           const SizedBox(height: 12),
-          DrawCard(event: event, participantCount: list.length),
+          DrawCard(
+            event: event,
+            participantCount: list.length,
+            readOnly: completed,
+          ),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -185,13 +234,15 @@ class EventDetailScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           if (participants.isLoading && list.isEmpty)
             const Center(child: CircularProgressIndicator())
+          else if (list.isEmpty && completed)
+            Text(l10n.participantCount(0))
           else if (list.isEmpty)
             _EmptyParticipants(
               onAdd: () => _openParticipant(context, list),
               onImport: () => _import(context),
             )
           else ...[
-            if (event.status == EventStatus.generated)
+            if (!completed && event.status == EventStatus.generated)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _Banner(
@@ -199,7 +250,7 @@ class EventDetailScreen extends ConsumerWidget {
                   text: l10n.rosterChangeCancelsDraw,
                 ),
               ),
-            if (list.length < SecretSantaCycle.minParticipants)
+            if (!completed && list.length < SecretSantaCycle.minParticipants)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _Banner(
@@ -217,7 +268,9 @@ class EventDetailScreen extends ConsumerWidget {
                     if (i > 0) const Divider(height: 1),
                     _ParticipantTile(
                       entry: p,
-                      onTap: () => _openParticipant(context, list, p),
+                      onTap: completed
+                          ? null
+                          : () => _openParticipant(context, list, p),
                     ),
                   ],
                 ],
@@ -334,7 +387,9 @@ class _ParticipantTile extends StatelessWidget {
   const _ParticipantTile({required this.entry, required this.onTap});
 
   final ParticipantWithWishlist entry;
-  final VoidCallback onTap;
+
+  /// Null when the event is read-only.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

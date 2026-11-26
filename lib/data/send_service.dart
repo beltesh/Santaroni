@@ -21,6 +21,10 @@ enum SendBlocker {
 
   /// The stored draw fails verification.
   drawInvalid,
+
+  /// The event is completed (its date passed, or it was archived), so it
+  /// is read-only.
+  eventCompleted,
 }
 
 class SendBlockedException implements Exception {
@@ -83,6 +87,9 @@ class SendService {
     }
 
     final event = (await events.watchEvent(eventId).first)!;
+    if (event.isCompletedAt(DateTime.now())) {
+      result.add(SendBlocker.eventCompleted);
+    }
     if ((await templates.forEvent(event)).problem != null) {
       result.add(SendBlocker.templateProblem);
     }

@@ -19,7 +19,7 @@ void main() {
     eventId = await repo.createEvent(
       EventDraft(
         name: 'Comic Book Group Secret Santa 2026',
-        date: DateTime(2026, 12, 20),
+        date: DateTime(2099, 12, 20),
         time: '19:30',
         place: 'The shop',
         budgetMinor: 2550,
@@ -68,7 +68,7 @@ void main() {
     expect(data['exportedAt'], '2026-11-25T12:00:00.000Z');
     expect(data['event'], {
       'name': 'Comic Book Group Secret Santa 2026',
-      'date': '2026-12-20',
+      'date': '2099-12-20',
       'time': '19:30',
       'place': 'The shop',
       'budget': 25.5,

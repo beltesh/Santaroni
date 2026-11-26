@@ -9,6 +9,7 @@ import '../common/format.dart';
 import '../events/event_detail_screen.dart';
 import '../events/event_form_screen.dart';
 import '../settings/settings_screen.dart';
+import 'event_grouping.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -41,11 +42,8 @@ class HomeScreen extends ConsumerWidget {
             child: switch (events) {
               AsyncData(value: final list) when list.isEmpty =>
                 const _EmptyState(),
-              AsyncData(value: final list) => ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
-                itemBuilder: (context, i) => _EventCard(summary: list[i]),
+              AsyncData(value: final list) => _EventSections(
+                groups: groupEvents(list, DateTime.now()),
               ),
               AsyncError(:final error) => Center(child: Text('$error')),
               _ => const Center(child: CircularProgressIndicator()),
@@ -89,6 +87,76 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Ongoing events (expanded when the app opens), then completed ones
+/// (collapsed), each in a section that can be opened or closed.
+class _EventSections extends StatelessWidget {
+  const _EventSections({required this.groups});
+
+  final GroupedEvents groups;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    Widget section({
+      required String title,
+      required List<EventSummary> events,
+      required bool expanded,
+      String? emptyText,
+    }) => ExpansionTile(
+      // Keyed so each section keeps its own open/closed state.
+      key: PageStorageKey(title),
+      initiallyExpanded: expanded,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+      childrenPadding: const EdgeInsets.only(bottom: 8),
+      title: Text(
+        '$title (${events.length})',
+        style: theme.textTheme.titleMedium,
+      ),
+      children: [
+        if (events.isEmpty && emptyText != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                emptyText,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        for (final (i, e) in events.indexed) ...[
+          if (i > 0) const SizedBox(height: 8),
+          _EventCard(summary: e),
+        ],
+      ],
+    );
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+      children: [
+        section(
+          title: l10n.homeOngoing,
+          events: groups.ongoing,
+          expanded: true,
+          emptyText: l10n.homeOngoingEmpty,
+        ),
+        if (groups.completed.isNotEmpty)
+          section(
+            title: l10n.homeCompleted,
+            events: groups.completed,
+            expanded: false,
+          ),
+      ],
     );
   }
 }
