@@ -1755,6 +1755,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Imported 1 participant} other{Imported {count} participants}}'**
   String csvImported(int count);
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @cancelEventMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel event…'**
+  String get cancelEventMenu;
+
+  /// No description provided for @cancelEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel “{name}”?'**
+  String cancelEventTitle(String name);
+
+  /// No description provided for @cancelEventBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling is final: the event moves to Completed and can no longer be changed.'**
+  String get cancelEventBody;
+
+  /// No description provided for @cancelNotify.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Email the participant} other{Email all {count} participants}}'**
+  String cancelNotify(int count);
+
+  /// No description provided for @cancelNotifyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no participants to email.'**
+  String get cancelNotifyNone;
+
+  /// No description provided for @cancelNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get cancelNoteLabel;
+
+  /// No description provided for @cancelNoteHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Included in the email, e.g. why, or what happens next.'**
+  String get cancelNoteHelp;
+
+  /// No description provided for @cancelAccountNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'To email participants, set up your email account first, or turn off the emails.'**
+  String get cancelAccountNeeded;
+
+  /// No description provided for @cancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel event'**
+  String get cancelConfirm;
+
+  /// No description provided for @keepEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep event'**
+  String get keepEvent;
+
+  /// No description provided for @eventCancelledSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled'**
+  String get eventCancelledSnack;
+
+  /// No description provided for @cancelledReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This event was cancelled on {date}, so it can no longer be changed. You can still review it, export a backup or delete it.'**
+  String cancelledReadOnly(String date);
+
+  /// No description provided for @cancelNoticesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation emails'**
+  String get cancelNoticesTitle;
+
+  /// No description provided for @cancelNoticesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants weren’t emailed about the cancellation.'**
+  String get cancelNoticesNone;
+
+  /// No description provided for @cancelResendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They’ll get the cancellation email again at {email}.'**
+  String cancelResendBody(String email);
+
+  /// No description provided for @templatesTabAssignment.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment'**
+  String get templatesTabAssignment;
+
+  /// No description provided for @templatesTabCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation'**
+  String get templatesTabCancellation;
+
+  /// No description provided for @templateKindAssignment.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment email'**
+  String get templateKindAssignment;
+
+  /// No description provided for @templateKindCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation email'**
+  String get templateKindCancellation;
+
+  /// No description provided for @templatesIntroCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to every participant when you cancel an event. Import your own .html or .txt file with variables like the ones listed below, then pick it when cancelling.'**
+  String get templatesIntroCancellation;
+
+  /// No description provided for @builtinCancellationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HTML email, used unless you pick another one when cancelling'**
+  String get builtinCancellationSubtitle;
+
+  /// No description provided for @builtinCancellationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The same festive design, letting everyone know the event was cancelled, with the event details and your note if you write one. A plain-text version is sent along with it. Save a copy to use it as the starting point for your own design.'**
+  String get builtinCancellationDescription;
+
+  /// No description provided for @varNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note about the cancellation, when you write one'**
+  String get varNote;
+
+  /// No description provided for @varHasDetailsCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Section shown when there’s a date or place'**
+  String get varHasDetailsCancellation;
 }
 
 class _AppLocalizationsDelegate

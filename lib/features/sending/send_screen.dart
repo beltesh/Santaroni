@@ -5,7 +5,6 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/providers.dart';
 import '../../core/email/email_providers.dart';
 import '../../data/database.dart';
-import '../../data/events_repository.dart';
 import '../../data/send_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/account_status_widgets.dart';
@@ -114,7 +113,7 @@ class SendScreen extends ConsumerWidget {
     // Surface the end of a run once, as a snackbar.
     ref.listen(sendControllerProvider(eventId), (previous, next) {
       if (previous?.running != true || next.running) return;
-      final message = _runMessage(l10n, next, account?.account?.provider);
+      final message = runMessage(l10n, next, account?.account?.provider);
       if (message != null) showSnack(context, message);
     });
 
@@ -142,7 +141,7 @@ class SendScreen extends ConsumerWidget {
         children: [
           _Checklist(event: event, accountReady: account.isReady),
           const SizedBox(height: 16),
-          _ProgressCard(
+          SendProgressCard(
             total: assignments.length,
             sent: sentCount,
             failed: failedCount,
@@ -206,8 +205,11 @@ class SendScreen extends ConsumerWidget {
               children: [
                 for (final (i, a) in assignments.indexed) ...[
                   if (i > 0) const Divider(height: 1),
-                  _GiverRow(
-                    view: a,
+                  EmailStatusTile(
+                    person: a.giver,
+                    status: a.assignment.sendStatus,
+                    sentAt: a.assignment.sentAt,
+                    lastError: a.assignment.lastError,
                     sendingNow: run.running && run.currentGiverId == a.giver.id,
                     canResend: !run.running && account.isReady,
                     onResend: () => _resend(context, ref, a.giver),
@@ -221,7 +223,7 @@ class SendScreen extends ConsumerWidget {
     );
   }
 
-  static String? _runMessage(
+  static String? runMessage(
     AppLocalizations l10n,
     SendRunState state,
     EmailProvider? provider,
@@ -324,8 +326,10 @@ class _Checklist extends ConsumerWidget {
   }
 }
 
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({
+/// How many emails of a batch went out.
+class SendProgressCard extends StatelessWidget {
+  const SendProgressCard({
+    super.key,
     required this.total,
     required this.sent,
     required this.failed,
@@ -401,15 +405,23 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-class _GiverRow extends StatelessWidget {
-  const _GiverRow({
-    required this.view,
+/// One person's email: whether it went out, with a resend button.
+class EmailStatusTile extends StatelessWidget {
+  const EmailStatusTile({
+    super.key,
+    required this.person,
+    required this.status,
+    this.sentAt,
+    this.lastError,
     required this.sendingNow,
     required this.canResend,
     required this.onResend,
   });
 
-  final AssignmentView view;
+  final Participant person;
+  final SendStatus status;
+  final DateTime? sentAt;
+  final String? lastError;
   final bool sendingNow;
   final bool canResend;
   final VoidCallback onResend;
@@ -418,10 +430,9 @@ class _GiverRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final a = view.assignment;
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    final (Widget icon, String status) = sendingNow
+    final (Widget icon, String text) = sendingNow
         ? (
             const SizedBox.square(
               dimension: 20,
@@ -429,21 +440,21 @@ class _GiverRow extends StatelessWidget {
             ),
             l10n.statusSendingNow,
           )
-        : switch (a.sendStatus) {
+        : switch (status) {
             SendStatus.sent => (
               Icon(
                 Icons.check_circle,
                 color: StatusColors.success(context).foreground,
               ),
-              a.sentAt == null
+              sentAt == null
                   ? l10n.statusEmailSent
                   : l10n.statusEmailSentAt(
-                      DateFormat.MMMd(locale).add_jm().format(a.sentAt!),
+                      DateFormat.MMMd(locale).add_jm().format(sentAt!),
                     ),
             ),
             SendStatus.failed => (
               Icon(Icons.error, color: theme.colorScheme.error),
-              l10n.statusEmailFailed(a.lastError ?? ''),
+              l10n.statusEmailFailed(lastError ?? ''),
             ),
             SendStatus.pending => (
               Icon(Icons.schedule, color: theme.colorScheme.onSurfaceVariant),
@@ -452,11 +463,11 @@ class _GiverRow extends StatelessWidget {
           };
 
     return ListTile(
-      leading: CircleAvatar(child: Text(initials(view.giver.name))),
-      title: Text(view.giver.name),
+      leading: CircleAvatar(child: Text(initials(person.name))),
+      title: Text(person.name),
       subtitle: Text(
-        '${view.giver.email}\n$status',
-        style: a.sendStatus == SendStatus.failed && !sendingNow
+        '${person.email}\n$text',
+        style: status == SendStatus.failed && !sendingNow
             ? TextStyle(color: theme.colorScheme.error)
             : null,
       ),
@@ -465,7 +476,7 @@ class _GiverRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           icon,
-          if (a.sendStatus != SendStatus.pending)
+          if (status != SendStatus.pending)
             IconButton(
               tooltip: l10n.resend,
               icon: const Icon(Icons.forward_to_inbox_outlined),

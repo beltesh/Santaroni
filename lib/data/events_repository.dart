@@ -132,13 +132,46 @@ class EventCompletedException implements Exception {
 }
 
 extension EventCompletion on Event {
-  /// Done: its date has passed, or (for an event without a date) it was
-  /// marked completed. Completed events are read-only.
+  bool get isCancelled => cancelledAt != null;
+
+  /// Done: cancelled, its date has passed, or (for an event without a date)
+  /// it was marked completed. Completed events are read-only.
   bool isCompletedAt(DateTime now) {
+    if (isCancelled) return true;
     final date = eventDate;
     if (date == null) return archived;
     return date.isBefore(DateTime(now.year, now.month, now.day));
   }
+}
+
+/// What the organizer chose when cancelling an event.
+class CancelRequest {
+  const CancelRequest({
+    this.notify = true,
+    this.note,
+    this.templateId,
+    this.subject,
+  });
+
+  /// Email every participant about the cancellation.
+  final bool notify;
+
+  /// Optional message included in the email.
+  final String? note;
+
+  /// Imported cancellation template, or null for the built-in one.
+  final int? templateId;
+
+  /// Subject, or null for the default in the event's language.
+  final String? subject;
+}
+
+/// A participant's cancellation email and whether it went out.
+class NoticeView {
+  const NoticeView(this.notice, this.participant);
+
+  final CancellationNotice notice;
+  final Participant participant;
 }
 
 class DuplicateEmailException implements Exception {
@@ -191,10 +224,44 @@ class EventsRepository {
       });
 
   /// Manually moves an event without a date to (or back from) Completed.
+  /// Cancelled events stay cancelled either way.
   Future<void> setArchived(int id, {required bool archived}) =>
       (_db.update(_db.events)..where((e) => e.id.equals(id))).write(
         EventsCompanion(archived: Value(archived)),
       );
+
+  /// Cancels an event for good: it becomes completed and read-only. With
+  /// [CancelRequest.notify], a pending cancellation email is queued for
+  /// every participant (sent by the cancellation service).
+  Future<void> cancelEvent(int id, CancelRequest request, {DateTime? at}) =>
+      _db.transaction(() async {
+        await _ensureNotCompleted(id);
+        String? clean(String? s) =>
+            s == null || s.trim().isEmpty ? null : s.trim();
+        await (_db.update(_db.events)..where((e) => e.id.equals(id))).write(
+          EventsCompanion(
+            cancelledAt: Value(at ?? DateTime.now()),
+            cancelNote: Value(clean(request.note)),
+            cancelTemplateId: Value(request.notify ? request.templateId : null),
+            cancelSubject: Value(
+              request.notify ? clean(request.subject) : null,
+            ),
+          ),
+        );
+        if (!request.notify) return;
+        final people = await (_db.select(
+          _db.participants,
+        )..where((p) => p.eventId.equals(id))).get();
+        await _db.batch(
+          (b) => b.insertAll(_db.cancellationNotices, [
+            for (final p in people)
+              CancellationNoticesCompanion.insert(
+                eventId: id,
+                participantId: Value(p.id),
+              ),
+          ]),
+        );
+      });
 
   Future<void> deleteEvent(int id) =>
       (_db.delete(_db.events)..where((e) => e.id.equals(id))).go();
@@ -422,6 +489,47 @@ class EventsRepository {
             ),
           );
 
+  // --- Cancellation emails -------------------------------------------------
+
+  Stream<List<NoticeView>> watchNotices(int eventId) {
+    final n = _db.cancellationNotices;
+    final p = _db.participants;
+    final query =
+        _db.select(n).join([innerJoin(p, p.id.equalsExp(n.participantId))])
+          ..where(n.eventId.equals(eventId))
+          ..orderBy([OrderingTerm.asc(p.name.collate(Collate.noCase))]);
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows) NoticeView(row.readTable(n), row.readTable(p)),
+      ],
+    );
+  }
+
+  Future<List<NoticeView>> notices(int eventId) => watchNotices(eventId).first;
+
+  Future<void> markNoticeSent(int participantId, {DateTime? at}) =>
+      (_db.update(
+        _db.cancellationNotices,
+      )..where((n) => n.participantId.equals(participantId))).write(
+        CancellationNoticesCompanion(
+          sendStatus: const Value(SendStatus.sent),
+          sentAt: Value(at ?? DateTime.now()),
+          lastError: const Value(null),
+        ),
+      );
+
+  Future<void> markNoticeFailed(int participantId, String error) =>
+      (_db.update(
+        _db.cancellationNotices,
+      )..where((n) => n.participantId.equals(participantId))).write(
+        CancellationNoticesCompanion(
+          sendStatus: const Value(SendStatus.failed),
+          lastError: Value(error),
+        ),
+      );
+
+  // ---------------------------------------------------------------------------
+
   Future<void> _refreshSendStatus(int eventId) async {
     final rows = await (_db.select(
       _db.assignments,
@@ -430,8 +538,6 @@ class EventsRepository {
     final allSent = rows.every((r) => r.sendStatus == SendStatus.sent);
     await _setStatus(eventId, allSent ? EventStatus.sent : EventStatus.sending);
   }
-
-  // ---------------------------------------------------------------------------
 
   Future<Event> _event(int eventId) =>
       (_db.select(_db.events)..where((e) => e.id.equals(eventId))).getSingle();

@@ -83,7 +83,8 @@ void main() {
 
       // The "ready to send" green of whichever theme is showing.
       Color goGreen() =>
-          StatusColors.go(tester.element(find.byType(Scaffold).last)).background;
+          StatusColors.go(tester.element(find.byType(Scaffold).last))
+              .background;
 
       // Not ready yet, so the send button is a plain (not green) one.
       Color? sendButtonColor() {
@@ -155,4 +156,106 @@ void main() {
       expect(find.text('sam@gmail.com'), findsOneWidget);
     },
   );
+
+  testWidgets('cancelling an event emails everyone and makes it read-only', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2600);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+
+    final db = AppDatabase(
+      DatabaseConnection(
+        NativeDatabase.memory(),
+        closeStreamsSynchronously: true,
+      ),
+    );
+    addTearDown(db.close);
+    final secrets = MemorySecretStore();
+    final transport = FakeMailTransport();
+
+    await tester.runAsync(() async {
+      final repo = EventsRepository(db);
+      final id = await repo.createEvent(
+        EventDraft(name: 'Party', date: DateTime(2099, 12, 20)),
+      );
+      for (final n in ['Ana', 'Beto', 'Carla']) {
+        await repo.addParticipant(
+          id,
+          ParticipantDraft(name: n, email: '$n@example.com'),
+        );
+      }
+      await EmailAccountRepository(db, secrets).save(
+        const EmailAccount(senderName: 'Sam', address: 'sam@gmail.com'),
+        password: 'secret',
+      );
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          secretStoreProvider.overrideWithValue(secrets),
+          mailTransportProvider.overrideWithValue(transport),
+        ],
+        child: const SantaroniApp(),
+      ),
+    );
+    await settle(tester);
+
+    await tester.tap(find.text('Party'));
+    await settle(tester);
+    await tester.tap(find.byType(PopupMenuButton<void>));
+    await settle(tester);
+    await tester.tap(find.text('Cancel event…'));
+    await settle(tester);
+
+    expect(find.text('Cancel “Party”?'), findsOneWidget);
+    expect(find.text('Email all 3 participants'), findsOneWidget);
+    // Keeping the event changes nothing.
+    await tester.tap(find.text('Keep event'));
+    await settle(tester);
+    expect(find.byTooltip('Edit'), findsOneWidget);
+
+    await tester.tap(find.byType(PopupMenuButton<void>));
+    await settle(tester);
+    await tester.tap(find.text('Cancel event…'));
+    await settle(tester);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Note (optional)'),
+      'See you in January!',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Cancel event'));
+    await settle(tester);
+
+    // Straight to the emails, which go out right away.
+    expect(find.text('Cancellation emails'), findsOneWidget);
+    expect(find.text('All emails sent'), findsOneWidget);
+    expect(transport.sent.map((m) => m.to), [
+      'Ana@example.com',
+      'Beto@example.com',
+      'Carla@example.com',
+    ]);
+    expect(transport.sent.first.email.text, contains('See you in January!'));
+
+    // The event is now cancelled and read-only.
+    await tester.pageBack();
+    await settle(tester);
+    expect(find.textContaining('This event was cancelled on'), findsOneWidget);
+    expect(find.text('Cancelled'), findsOneWidget);
+    expect(find.text('See you in January!'), findsOneWidget);
+    expect(find.byTooltip('Edit'), findsNothing);
+    expect(find.text('Add participant'), findsNothing);
+    await tester.tap(find.byType(PopupMenuButton<void>));
+    await settle(tester);
+    expect(find.text('Cancel event…'), findsNothing);
+    await tester.tapAt(Offset.zero);
+    await settle(tester);
+
+    // Home lists it under Completed.
+    await tester.pageBack();
+    await settle(tester);
+    expect(find.text('Completed (1)'), findsOneWidget);
+    expect(find.text('Party'), findsNothing, reason: 'Completed is closed');
+  });
 }

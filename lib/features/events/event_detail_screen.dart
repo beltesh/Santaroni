@@ -16,7 +16,9 @@ import '../draw/draw_card.dart';
 import '../draw/export_action.dart';
 import '../participants/csv_import_screen.dart';
 import '../participants/participant_form_screen.dart';
+import '../sending/cancel_notices_screen.dart';
 import '../templates/templates_screen.dart';
+import 'cancel_event.dart';
 import 'event_form_screen.dart';
 
 class EventDetailScreen extends ConsumerWidget {
@@ -153,8 +155,22 @@ class EventDetailScreen extends ConsumerWidget {
             // Use the screen's context, not the menu's: the menu is gone by
             // the time the confirmation dialog opens.
             itemBuilder: (_) => [
+              if (!completed)
+                PopupMenuItem(
+                  onTap: () => cancelEventFlow(
+                    context,
+                    ref,
+                    event,
+                    participantCount: list.length,
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.event_busy_outlined),
+                    title: Text(l10n.cancelEventMenu),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               // Events without a date don't complete on their own.
-              if (event.eventDate == null)
+              if (event.eventDate == null && !event.isCancelled)
                 PopupMenuItem(
                   onTap: () => _setArchived(context, ref, event),
                   child: ListTile(
@@ -189,12 +205,22 @@ class EventDetailScreen extends ConsumerWidget {
             const AccountNeededBanner(),
           if (completed) ...[
             const SizedBox(height: 12),
-            _Banner(
-              icon: Icons.inventory_2_outlined,
-              text: event.eventDate == null
-                  ? l10n.completedReadOnlyArchived
-                  : l10n.completedReadOnlyDated,
-            ),
+            if (event.isCancelled) ...[
+              _Banner(
+                icon: Icons.event_busy_outlined,
+                text: l10n.cancelledReadOnly(
+                  formatDate(context, event.cancelledAt!),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _CancelNoticesCard(eventId: event.id),
+            ] else
+              _Banner(
+                icon: Icons.inventory_2_outlined,
+                text: event.eventDate == null
+                    ? l10n.completedReadOnlyArchived
+                    : l10n.completedReadOnlyDated,
+              ),
           ] else if (locked) ...[
             const SizedBox(height: 12),
             _Banner(icon: Icons.lock_outline, text: l10n.eventLockedBanner),
@@ -314,6 +340,8 @@ class _EventInfoCard extends ConsumerWidget {
       if (event.place != null) (Icons.place_outlined, event.place!, false),
       if (budget != null)
         (Icons.savings_outlined, l10n.budgetUpTo(budget), false),
+      if (event.cancelNote != null)
+        (Icons.sticky_note_2_outlined, event.cancelNote!, false),
       (Icons.translate, languageEndonym(event.languageCode), false),
       (Icons.subject, subject, false),
       (
@@ -336,7 +364,7 @@ class _EventInfoCard extends ConsumerWidget {
             Row(
               children: [
                 Chip(
-                  label: Text(statusLabel(l10n, event.status)),
+                  label: Text(eventStatusLabel(l10n, event)),
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -377,6 +405,63 @@ class _EventInfoCard extends ConsumerWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// How the cancellation emails went, opening their details.
+class _CancelNoticesCard extends ConsumerWidget {
+  const _CancelNoticesCard({required this.eventId});
+
+  final int eventId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final notices = ref.watch(noticesProvider(eventId)).value;
+    if (notices == null) return const SizedBox.shrink();
+    if (notices.isEmpty) {
+      return Card(
+        margin: EdgeInsets.zero,
+        child: ListTile(
+          leading: const Icon(Icons.unsubscribe_outlined),
+          title: Text(l10n.cancelNoticesTitle),
+          subtitle: Text(l10n.cancelNoticesNone),
+        ),
+      );
+    }
+
+    final sent = notices
+        .where((n) => n.notice.sendStatus == SendStatus.sent)
+        .length;
+    final failed = notices
+        .where((n) => n.notice.sendStatus == SendStatus.failed)
+        .length;
+    final done = sent == notices.length;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        leading: Icon(
+          done ? Icons.mark_email_read_outlined : Icons.outgoing_mail,
+          color: failed > 0 ? theme.colorScheme.error : null,
+        ),
+        title: Text(l10n.cancelNoticesTitle),
+        subtitle: Text(
+          [
+            done ? l10n.allEmailsSent : l10n.sentOfTotal(sent, notices.length),
+            if (failed > 0) l10n.failedCount(failed),
+          ].join(' · '),
+          style: failed > 0 ? TextStyle(color: theme.colorScheme.error) : null,
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => CancelNoticesScreen(eventId: eventId),
+          ),
         ),
       ),
     );

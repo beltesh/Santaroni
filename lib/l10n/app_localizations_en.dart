@@ -1046,4 +1046,101 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get cancelEventMenu => 'Cancel event…';
+
+  @override
+  String cancelEventTitle(String name) {
+    return 'Cancel “$name”?';
+  }
+
+  @override
+  String get cancelEventBody =>
+      'Cancelling is final: the event moves to Completed and can no longer be changed.';
+
+  @override
+  String cancelNotify(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Email all $count participants',
+      one: 'Email the participant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cancelNotifyNone => 'There are no participants to email.';
+
+  @override
+  String get cancelNoteLabel => 'Note (optional)';
+
+  @override
+  String get cancelNoteHelp =>
+      'Included in the email, e.g. why, or what happens next.';
+
+  @override
+  String get cancelAccountNeeded =>
+      'To email participants, set up your email account first, or turn off the emails.';
+
+  @override
+  String get cancelConfirm => 'Cancel event';
+
+  @override
+  String get keepEvent => 'Keep event';
+
+  @override
+  String get eventCancelledSnack => 'Event cancelled';
+
+  @override
+  String cancelledReadOnly(String date) {
+    return 'This event was cancelled on $date, so it can no longer be changed. You can still review it, export a backup or delete it.';
+  }
+
+  @override
+  String get cancelNoticesTitle => 'Cancellation emails';
+
+  @override
+  String get cancelNoticesNone =>
+      'Participants weren’t emailed about the cancellation.';
+
+  @override
+  String cancelResendBody(String email) {
+    return 'They’ll get the cancellation email again at $email.';
+  }
+
+  @override
+  String get templatesTabAssignment => 'Assignment';
+
+  @override
+  String get templatesTabCancellation => 'Cancellation';
+
+  @override
+  String get templateKindAssignment => 'Assignment email';
+
+  @override
+  String get templateKindCancellation => 'Cancellation email';
+
+  @override
+  String get templatesIntroCancellation =>
+      'Sent to every participant when you cancel an event. Import your own .html or .txt file with variables like the ones listed below, then pick it when cancelling.';
+
+  @override
+  String get builtinCancellationSubtitle =>
+      'HTML email, used unless you pick another one when cancelling';
+
+  @override
+  String get builtinCancellationDescription =>
+      'The same festive design, letting everyone know the event was cancelled, with the event details and your note if you write one. A plain-text version is sent along with it. Save a copy to use it as the starting point for your own design.';
+
+  @override
+  String get varNote => 'Your note about the cancellation, when you write one';
+
+  @override
+  String get varHasDetailsCancellation =>
+      'Section shown when there’s a date or place';
 }

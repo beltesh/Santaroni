@@ -20,12 +20,15 @@ class EmailService {
   /// made-up participants, so they can check the account works and see how
   /// a template really looks in their inbox. With [event], its real details
   /// (name, date, place, budget) are used; the people are still made up, so
-  /// no assignment is revealed. Returns the address used.
+  /// no assignment is revealed. For a cancellation email, [note] replaces
+  /// the sample note. Returns the address used.
   Future<String> sendTest({
     required String subject,
     required BodyTemplate body,
     required String languageCode,
+    TemplateKind kind = TemplateKind.assignment,
     Event? event,
+    String? note,
     String testPrefix = '[Test] ',
   }) async {
     final account = await _accounts.load();
@@ -52,24 +55,37 @@ class EmailService {
             giverEmail: '',
             recipientName: '',
           );
-    final email = renderEmail(
-      subject: subject,
-      body: body,
-      context: EmailContext(
+    final me = account.senderName.isEmpty
+        ? sample.giverName
+        : account.senderName;
+    final organizer = account.senderName.isEmpty ? null : account.senderName;
+    final TemplateValues values = switch (kind) {
+      TemplateKind.assignment => EmailContext(
         eventName: details.eventName,
         eventDate: details.eventDate,
         eventTime: details.eventTime,
         eventPlace: details.eventPlace,
         budget: details.budget,
-        giverName: account.senderName.isEmpty
-            ? sample.giverName
-            : account.senderName,
+        giverName: me,
         giverEmail: account.address,
         recipientName: sample.recipientName,
-        organizerName: account.senderName.isEmpty ? null : account.senderName,
+        organizerName: organizer,
         wishlist: sample.wishlist,
       ),
-    );
+      TemplateKind.cancellation => CancellationContext(
+        eventName: details.eventName,
+        eventDate: details.eventDate,
+        eventTime: details.eventTime,
+        eventPlace: details.eventPlace,
+        participantName: me,
+        participantEmail: account.address,
+        organizerName: organizer,
+        note: event == null
+            ? CancellationContext.sample(languageCode).note
+            : note,
+      ),
+    };
+    final email = renderEmail(subject: subject, body: body, context: values);
 
     await _transport.sendOne(
       account.smtpConfig,

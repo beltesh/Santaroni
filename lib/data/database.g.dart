@@ -256,6 +256,16 @@ class $EmailTemplatesTable extends EmailTemplates
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<TemplateFormat>($EmailTemplatesTable.$converterformat);
+  @override
+  late final GeneratedColumnWithTypeConverter<TemplateKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(TemplateKind.assignment.name),
+      ).withConverter<TemplateKind>($EmailTemplatesTable.$converterkind);
   static const VerificationMeta _bodyMeta = const VerificationMeta('body');
   @override
   late final GeneratedColumn<String> body = GeneratedColumn<String>(
@@ -283,6 +293,7 @@ class $EmailTemplatesTable extends EmailTemplates
     name,
     fileName,
     format,
+    kind,
     body,
     importedAt,
   ];
@@ -358,6 +369,12 @@ class $EmailTemplatesTable extends EmailTemplates
           data['${effectivePrefix}format'],
         )!,
       ),
+      kind: $EmailTemplatesTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
       body: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}body'],
@@ -376,6 +393,8 @@ class $EmailTemplatesTable extends EmailTemplates
 
   static JsonTypeConverter2<TemplateFormat, String, String> $converterformat =
       const EnumNameConverter<TemplateFormat>(TemplateFormat.values);
+  static JsonTypeConverter2<TemplateKind, String, String> $converterkind =
+      const EnumNameConverter<TemplateKind>(TemplateKind.values);
 }
 
 class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
@@ -388,6 +407,9 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
   final String fileName;
   final TemplateFormat format;
 
+  /// Assignment or cancellation email; each kind has its own variables.
+  final TemplateKind kind;
+
   /// The file's contents, with `{{Variables}}`. Stored so that moving or
   /// deleting the original file doesn't break anything.
   final String body;
@@ -397,6 +419,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     required this.name,
     required this.fileName,
     required this.format,
+    required this.kind,
     required this.body,
     required this.importedAt,
   });
@@ -411,6 +434,11 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
         $EmailTemplatesTable.$converterformat.toSql(format),
       );
     }
+    {
+      map['kind'] = Variable<String>(
+        $EmailTemplatesTable.$converterkind.toSql(kind),
+      );
+    }
     map['body'] = Variable<String>(body);
     map['imported_at'] = Variable<DateTime>(importedAt);
     return map;
@@ -422,6 +450,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
       name: Value(name),
       fileName: Value(fileName),
       format: Value(format),
+      kind: Value(kind),
       body: Value(body),
       importedAt: Value(importedAt),
     );
@@ -439,6 +468,9 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
       format: $EmailTemplatesTable.$converterformat.fromJson(
         serializer.fromJson<String>(json['format']),
       ),
+      kind: $EmailTemplatesTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
       body: serializer.fromJson<String>(json['body']),
       importedAt: serializer.fromJson<DateTime>(json['importedAt']),
     );
@@ -453,6 +485,9 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
       'format': serializer.toJson<String>(
         $EmailTemplatesTable.$converterformat.toJson(format),
       ),
+      'kind': serializer.toJson<String>(
+        $EmailTemplatesTable.$converterkind.toJson(kind),
+      ),
       'body': serializer.toJson<String>(body),
       'importedAt': serializer.toJson<DateTime>(importedAt),
     };
@@ -463,6 +498,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     String? name,
     String? fileName,
     TemplateFormat? format,
+    TemplateKind? kind,
     String? body,
     DateTime? importedAt,
   }) => EmailTemplate(
@@ -470,6 +506,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     name: name ?? this.name,
     fileName: fileName ?? this.fileName,
     format: format ?? this.format,
+    kind: kind ?? this.kind,
     body: body ?? this.body,
     importedAt: importedAt ?? this.importedAt,
   );
@@ -479,6 +516,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
       name: data.name.present ? data.name.value : this.name,
       fileName: data.fileName.present ? data.fileName.value : this.fileName,
       format: data.format.present ? data.format.value : this.format,
+      kind: data.kind.present ? data.kind.value : this.kind,
       body: data.body.present ? data.body.value : this.body,
       importedAt: data.importedAt.present
           ? data.importedAt.value
@@ -493,6 +531,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
           ..write('name: $name, ')
           ..write('fileName: $fileName, ')
           ..write('format: $format, ')
+          ..write('kind: $kind, ')
           ..write('body: $body, ')
           ..write('importedAt: $importedAt')
           ..write(')'))
@@ -500,7 +539,8 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, fileName, format, body, importedAt);
+  int get hashCode =>
+      Object.hash(id, name, fileName, format, kind, body, importedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -509,6 +549,7 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
           other.name == this.name &&
           other.fileName == this.fileName &&
           other.format == this.format &&
+          other.kind == this.kind &&
           other.body == this.body &&
           other.importedAt == this.importedAt);
 }
@@ -518,6 +559,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
   final Value<String> name;
   final Value<String> fileName;
   final Value<TemplateFormat> format;
+  final Value<TemplateKind> kind;
   final Value<String> body;
   final Value<DateTime> importedAt;
   const EmailTemplatesCompanion({
@@ -525,6 +567,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     this.name = const Value.absent(),
     this.fileName = const Value.absent(),
     this.format = const Value.absent(),
+    this.kind = const Value.absent(),
     this.body = const Value.absent(),
     this.importedAt = const Value.absent(),
   });
@@ -533,6 +576,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     required String name,
     required String fileName,
     required TemplateFormat format,
+    this.kind = const Value.absent(),
     required String body,
     this.importedAt = const Value.absent(),
   }) : name = Value(name),
@@ -544,6 +588,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     Expression<String>? name,
     Expression<String>? fileName,
     Expression<String>? format,
+    Expression<String>? kind,
     Expression<String>? body,
     Expression<DateTime>? importedAt,
   }) {
@@ -552,6 +597,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
       if (name != null) 'name': name,
       if (fileName != null) 'file_name': fileName,
       if (format != null) 'format': format,
+      if (kind != null) 'kind': kind,
       if (body != null) 'body': body,
       if (importedAt != null) 'imported_at': importedAt,
     });
@@ -562,6 +608,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     Value<String>? name,
     Value<String>? fileName,
     Value<TemplateFormat>? format,
+    Value<TemplateKind>? kind,
     Value<String>? body,
     Value<DateTime>? importedAt,
   }) {
@@ -570,6 +617,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
       name: name ?? this.name,
       fileName: fileName ?? this.fileName,
       format: format ?? this.format,
+      kind: kind ?? this.kind,
       body: body ?? this.body,
       importedAt: importedAt ?? this.importedAt,
     );
@@ -592,6 +640,11 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
         $EmailTemplatesTable.$converterformat.toSql(format.value),
       );
     }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $EmailTemplatesTable.$converterkind.toSql(kind.value),
+      );
+    }
     if (body.present) {
       map['body'] = Variable<String>(body.value);
     }
@@ -608,6 +661,7 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
           ..write('name: $name, ')
           ..write('fileName: $fileName, ')
           ..write('format: $format, ')
+          ..write('kind: $kind, ')
           ..write('body: $body, ')
           ..write('importedAt: $importedAt')
           ..write(')'))
@@ -757,6 +811,53 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _cancelledAtMeta = const VerificationMeta(
+    'cancelledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cancelledAt = GeneratedColumn<DateTime>(
+    'cancelled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cancelNoteMeta = const VerificationMeta(
+    'cancelNote',
+  );
+  @override
+  late final GeneratedColumn<String> cancelNote = GeneratedColumn<String>(
+    'cancel_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cancelTemplateIdMeta = const VerificationMeta(
+    'cancelTemplateId',
+  );
+  @override
+  late final GeneratedColumn<int> cancelTemplateId = GeneratedColumn<int>(
+    'cancel_template_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES email_templates (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _cancelSubjectMeta = const VerificationMeta(
+    'cancelSubject',
+  );
+  @override
+  late final GeneratedColumn<String> cancelSubject = GeneratedColumn<String>(
+    'cancel_subject',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<EventStatus, String> status =
       GeneratedColumn<String>(
@@ -793,6 +894,10 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     templateId,
     emailSubject,
     archived,
+    cancelledAt,
+    cancelNote,
+    cancelTemplateId,
+    cancelSubject,
     status,
     createdAt,
   ];
@@ -890,6 +995,39 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta),
       );
     }
+    if (data.containsKey('cancelled_at')) {
+      context.handle(
+        _cancelledAtMeta,
+        cancelledAt.isAcceptableOrUnknown(
+          data['cancelled_at']!,
+          _cancelledAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cancel_note')) {
+      context.handle(
+        _cancelNoteMeta,
+        cancelNote.isAcceptableOrUnknown(data['cancel_note']!, _cancelNoteMeta),
+      );
+    }
+    if (data.containsKey('cancel_template_id')) {
+      context.handle(
+        _cancelTemplateIdMeta,
+        cancelTemplateId.isAcceptableOrUnknown(
+          data['cancel_template_id']!,
+          _cancelTemplateIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cancel_subject')) {
+      context.handle(
+        _cancelSubjectMeta,
+        cancelSubject.isAcceptableOrUnknown(
+          data['cancel_subject']!,
+          _cancelSubjectMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -953,6 +1091,22 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         DriftSqlType.bool,
         data['${effectivePrefix}archived'],
       )!,
+      cancelledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cancelled_at'],
+      ),
+      cancelNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cancel_note'],
+      ),
+      cancelTemplateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cancel_template_id'],
+      ),
+      cancelSubject: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cancel_subject'],
+      ),
       status: $EventsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -998,8 +1152,8 @@ class Event extends DataClass implements Insertable<Event> {
   /// Language used for this event's emails.
   final String languageCode;
 
-  /// Imported template for the email body, or null for the built-in plain
-  /// text one in [languageCode].
+  /// Imported template for the email body, or null for the built-in one in
+  /// [languageCode].
   final int? templateId;
 
   /// Subject line, may contain `{{Variables}}`. Null means the default
@@ -1009,6 +1163,20 @@ class Event extends DataClass implements Insertable<Event> {
   /// Manually moved to "Completed". Only used for events without a date;
   /// dated events are completed once their date has passed.
   final bool archived;
+
+  /// When the event was cancelled. Cancelling is final: the event is then
+  /// completed (read-only), whatever its date.
+  final DateTime? cancelledAt;
+
+  /// The organizer's optional message in the cancellation email.
+  final String? cancelNote;
+
+  /// Imported cancellation template, or null for the built-in one. Kept so
+  /// failed cancellation emails can be retried with the same template.
+  final int? cancelTemplateId;
+
+  /// Subject of the cancellation email, or null for the default.
+  final String? cancelSubject;
   final EventStatus status;
   final DateTime createdAt;
   const Event({
@@ -1024,6 +1192,10 @@ class Event extends DataClass implements Insertable<Event> {
     this.templateId,
     this.emailSubject,
     required this.archived,
+    this.cancelledAt,
+    this.cancelNote,
+    this.cancelTemplateId,
+    this.cancelSubject,
     required this.status,
     required this.createdAt,
   });
@@ -1054,6 +1226,18 @@ class Event extends DataClass implements Insertable<Event> {
       map['email_subject'] = Variable<String>(emailSubject);
     }
     map['archived'] = Variable<bool>(archived);
+    if (!nullToAbsent || cancelledAt != null) {
+      map['cancelled_at'] = Variable<DateTime>(cancelledAt);
+    }
+    if (!nullToAbsent || cancelNote != null) {
+      map['cancel_note'] = Variable<String>(cancelNote);
+    }
+    if (!nullToAbsent || cancelTemplateId != null) {
+      map['cancel_template_id'] = Variable<int>(cancelTemplateId);
+    }
+    if (!nullToAbsent || cancelSubject != null) {
+      map['cancel_subject'] = Variable<String>(cancelSubject);
+    }
     {
       map['status'] = Variable<String>(
         $EventsTable.$converterstatus.toSql(status),
@@ -1089,6 +1273,18 @@ class Event extends DataClass implements Insertable<Event> {
           ? const Value.absent()
           : Value(emailSubject),
       archived: Value(archived),
+      cancelledAt: cancelledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelledAt),
+      cancelNote: cancelNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelNote),
+      cancelTemplateId: cancelTemplateId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelTemplateId),
+      cancelSubject: cancelSubject == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelSubject),
       status: Value(status),
       createdAt: Value(createdAt),
     );
@@ -1112,6 +1308,10 @@ class Event extends DataClass implements Insertable<Event> {
       templateId: serializer.fromJson<int?>(json['templateId']),
       emailSubject: serializer.fromJson<String?>(json['emailSubject']),
       archived: serializer.fromJson<bool>(json['archived']),
+      cancelledAt: serializer.fromJson<DateTime?>(json['cancelledAt']),
+      cancelNote: serializer.fromJson<String?>(json['cancelNote']),
+      cancelTemplateId: serializer.fromJson<int?>(json['cancelTemplateId']),
+      cancelSubject: serializer.fromJson<String?>(json['cancelSubject']),
       status: $EventsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -1134,6 +1334,10 @@ class Event extends DataClass implements Insertable<Event> {
       'templateId': serializer.toJson<int?>(templateId),
       'emailSubject': serializer.toJson<String?>(emailSubject),
       'archived': serializer.toJson<bool>(archived),
+      'cancelledAt': serializer.toJson<DateTime?>(cancelledAt),
+      'cancelNote': serializer.toJson<String?>(cancelNote),
+      'cancelTemplateId': serializer.toJson<int?>(cancelTemplateId),
+      'cancelSubject': serializer.toJson<String?>(cancelSubject),
       'status': serializer.toJson<String>(
         $EventsTable.$converterstatus.toJson(status),
       ),
@@ -1154,6 +1358,10 @@ class Event extends DataClass implements Insertable<Event> {
     Value<int?> templateId = const Value.absent(),
     Value<String?> emailSubject = const Value.absent(),
     bool? archived,
+    Value<DateTime?> cancelledAt = const Value.absent(),
+    Value<String?> cancelNote = const Value.absent(),
+    Value<int?> cancelTemplateId = const Value.absent(),
+    Value<String?> cancelSubject = const Value.absent(),
     EventStatus? status,
     DateTime? createdAt,
   }) => Event(
@@ -1169,6 +1377,14 @@ class Event extends DataClass implements Insertable<Event> {
     templateId: templateId.present ? templateId.value : this.templateId,
     emailSubject: emailSubject.present ? emailSubject.value : this.emailSubject,
     archived: archived ?? this.archived,
+    cancelledAt: cancelledAt.present ? cancelledAt.value : this.cancelledAt,
+    cancelNote: cancelNote.present ? cancelNote.value : this.cancelNote,
+    cancelTemplateId: cancelTemplateId.present
+        ? cancelTemplateId.value
+        : this.cancelTemplateId,
+    cancelSubject: cancelSubject.present
+        ? cancelSubject.value
+        : this.cancelSubject,
     status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1194,6 +1410,18 @@ class Event extends DataClass implements Insertable<Event> {
           ? data.emailSubject.value
           : this.emailSubject,
       archived: data.archived.present ? data.archived.value : this.archived,
+      cancelledAt: data.cancelledAt.present
+          ? data.cancelledAt.value
+          : this.cancelledAt,
+      cancelNote: data.cancelNote.present
+          ? data.cancelNote.value
+          : this.cancelNote,
+      cancelTemplateId: data.cancelTemplateId.present
+          ? data.cancelTemplateId.value
+          : this.cancelTemplateId,
+      cancelSubject: data.cancelSubject.present
+          ? data.cancelSubject.value
+          : this.cancelSubject,
       status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -1214,6 +1442,10 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('templateId: $templateId, ')
           ..write('emailSubject: $emailSubject, ')
           ..write('archived: $archived, ')
+          ..write('cancelledAt: $cancelledAt, ')
+          ..write('cancelNote: $cancelNote, ')
+          ..write('cancelTemplateId: $cancelTemplateId, ')
+          ..write('cancelSubject: $cancelSubject, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1234,6 +1466,10 @@ class Event extends DataClass implements Insertable<Event> {
     templateId,
     emailSubject,
     archived,
+    cancelledAt,
+    cancelNote,
+    cancelTemplateId,
+    cancelSubject,
     status,
     createdAt,
   );
@@ -1253,6 +1489,10 @@ class Event extends DataClass implements Insertable<Event> {
           other.templateId == this.templateId &&
           other.emailSubject == this.emailSubject &&
           other.archived == this.archived &&
+          other.cancelledAt == this.cancelledAt &&
+          other.cancelNote == this.cancelNote &&
+          other.cancelTemplateId == this.cancelTemplateId &&
+          other.cancelSubject == this.cancelSubject &&
           other.status == this.status &&
           other.createdAt == this.createdAt);
 }
@@ -1270,6 +1510,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<int?> templateId;
   final Value<String?> emailSubject;
   final Value<bool> archived;
+  final Value<DateTime?> cancelledAt;
+  final Value<String?> cancelNote;
+  final Value<int?> cancelTemplateId;
+  final Value<String?> cancelSubject;
   final Value<EventStatus> status;
   final Value<DateTime> createdAt;
   const EventsCompanion({
@@ -1285,6 +1529,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.templateId = const Value.absent(),
     this.emailSubject = const Value.absent(),
     this.archived = const Value.absent(),
+    this.cancelledAt = const Value.absent(),
+    this.cancelNote = const Value.absent(),
+    this.cancelTemplateId = const Value.absent(),
+    this.cancelSubject = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -1301,6 +1549,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.templateId = const Value.absent(),
     this.emailSubject = const Value.absent(),
     this.archived = const Value.absent(),
+    this.cancelledAt = const Value.absent(),
+    this.cancelNote = const Value.absent(),
+    this.cancelTemplateId = const Value.absent(),
+    this.cancelSubject = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
@@ -1318,6 +1570,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<int>? templateId,
     Expression<String>? emailSubject,
     Expression<bool>? archived,
+    Expression<DateTime>? cancelledAt,
+    Expression<String>? cancelNote,
+    Expression<int>? cancelTemplateId,
+    Expression<String>? cancelSubject,
     Expression<String>? status,
     Expression<DateTime>? createdAt,
   }) {
@@ -1334,6 +1590,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (templateId != null) 'template_id': templateId,
       if (emailSubject != null) 'email_subject': emailSubject,
       if (archived != null) 'archived': archived,
+      if (cancelledAt != null) 'cancelled_at': cancelledAt,
+      if (cancelNote != null) 'cancel_note': cancelNote,
+      if (cancelTemplateId != null) 'cancel_template_id': cancelTemplateId,
+      if (cancelSubject != null) 'cancel_subject': cancelSubject,
       if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -1352,6 +1612,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Value<int?>? templateId,
     Value<String?>? emailSubject,
     Value<bool>? archived,
+    Value<DateTime?>? cancelledAt,
+    Value<String?>? cancelNote,
+    Value<int?>? cancelTemplateId,
+    Value<String?>? cancelSubject,
     Value<EventStatus>? status,
     Value<DateTime>? createdAt,
   }) {
@@ -1368,6 +1632,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
       templateId: templateId ?? this.templateId,
       emailSubject: emailSubject ?? this.emailSubject,
       archived: archived ?? this.archived,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      cancelNote: cancelNote ?? this.cancelNote,
+      cancelTemplateId: cancelTemplateId ?? this.cancelTemplateId,
+      cancelSubject: cancelSubject ?? this.cancelSubject,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -1412,6 +1680,18 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (archived.present) {
       map['archived'] = Variable<bool>(archived.value);
     }
+    if (cancelledAt.present) {
+      map['cancelled_at'] = Variable<DateTime>(cancelledAt.value);
+    }
+    if (cancelNote.present) {
+      map['cancel_note'] = Variable<String>(cancelNote.value);
+    }
+    if (cancelTemplateId.present) {
+      map['cancel_template_id'] = Variable<int>(cancelTemplateId.value);
+    }
+    if (cancelSubject.present) {
+      map['cancel_subject'] = Variable<String>(cancelSubject.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $EventsTable.$converterstatus.toSql(status.value),
@@ -1438,6 +1718,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('templateId: $templateId, ')
           ..write('emailSubject: $emailSubject, ')
           ..write('archived: $archived, ')
+          ..write('cancelledAt: $cancelledAt, ')
+          ..write('cancelNote: $cancelNote, ')
+          ..write('cancelTemplateId: $cancelTemplateId, ')
+          ..write('cancelSubject: $cancelSubject, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2594,6 +2878,381 @@ class AssignmentsCompanion extends UpdateCompanion<Assignment> {
   }
 }
 
+class $CancellationNoticesTable extends CancellationNotices
+    with TableInfo<$CancellationNoticesTable, CancellationNotice> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CancellationNoticesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  @override
+  late final GeneratedColumn<int> eventId = GeneratedColumn<int>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES events (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _participantIdMeta = const VerificationMeta(
+    'participantId',
+  );
+  @override
+  late final GeneratedColumn<int> participantId = GeneratedColumn<int>(
+    'participant_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES participants (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<SendStatus, String> sendStatus =
+      GeneratedColumn<String>(
+        'send_status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(SendStatus.pending.name),
+      ).withConverter<SendStatus>(
+        $CancellationNoticesTable.$convertersendStatus,
+      );
+  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
+  @override
+  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
+    'sent_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    eventId,
+    participantId,
+    sendStatus,
+    sentAt,
+    lastError,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cancellation_notices';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CancellationNotice> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('participant_id')) {
+      context.handle(
+        _participantIdMeta,
+        participantId.isAcceptableOrUnknown(
+          data['participant_id']!,
+          _participantIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sent_at')) {
+      context.handle(
+        _sentAtMeta,
+        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {participantId};
+  @override
+  CancellationNotice map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CancellationNotice(
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}event_id'],
+      )!,
+      participantId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}participant_id'],
+      )!,
+      sendStatus: $CancellationNoticesTable.$convertersendStatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}send_status'],
+        )!,
+      ),
+      sentAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sent_at'],
+      ),
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+    );
+  }
+
+  @override
+  $CancellationNoticesTable createAlias(String alias) {
+    return $CancellationNoticesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<SendStatus, String, String> $convertersendStatus =
+      const EnumNameConverter<SendStatus>(SendStatus.values);
+}
+
+class CancellationNotice extends DataClass
+    implements Insertable<CancellationNotice> {
+  final int eventId;
+  final int participantId;
+  final SendStatus sendStatus;
+  final DateTime? sentAt;
+  final String? lastError;
+  const CancellationNotice({
+    required this.eventId,
+    required this.participantId,
+    required this.sendStatus,
+    this.sentAt,
+    this.lastError,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['event_id'] = Variable<int>(eventId);
+    map['participant_id'] = Variable<int>(participantId);
+    {
+      map['send_status'] = Variable<String>(
+        $CancellationNoticesTable.$convertersendStatus.toSql(sendStatus),
+      );
+    }
+    if (!nullToAbsent || sentAt != null) {
+      map['sent_at'] = Variable<DateTime>(sentAt);
+    }
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    return map;
+  }
+
+  CancellationNoticesCompanion toCompanion(bool nullToAbsent) {
+    return CancellationNoticesCompanion(
+      eventId: Value(eventId),
+      participantId: Value(participantId),
+      sendStatus: Value(sendStatus),
+      sentAt: sentAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sentAt),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+    );
+  }
+
+  factory CancellationNotice.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CancellationNotice(
+      eventId: serializer.fromJson<int>(json['eventId']),
+      participantId: serializer.fromJson<int>(json['participantId']),
+      sendStatus: $CancellationNoticesTable.$convertersendStatus.fromJson(
+        serializer.fromJson<String>(json['sendStatus']),
+      ),
+      sentAt: serializer.fromJson<DateTime?>(json['sentAt']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'eventId': serializer.toJson<int>(eventId),
+      'participantId': serializer.toJson<int>(participantId),
+      'sendStatus': serializer.toJson<String>(
+        $CancellationNoticesTable.$convertersendStatus.toJson(sendStatus),
+      ),
+      'sentAt': serializer.toJson<DateTime?>(sentAt),
+      'lastError': serializer.toJson<String?>(lastError),
+    };
+  }
+
+  CancellationNotice copyWith({
+    int? eventId,
+    int? participantId,
+    SendStatus? sendStatus,
+    Value<DateTime?> sentAt = const Value.absent(),
+    Value<String?> lastError = const Value.absent(),
+  }) => CancellationNotice(
+    eventId: eventId ?? this.eventId,
+    participantId: participantId ?? this.participantId,
+    sendStatus: sendStatus ?? this.sendStatus,
+    sentAt: sentAt.present ? sentAt.value : this.sentAt,
+    lastError: lastError.present ? lastError.value : this.lastError,
+  );
+  CancellationNotice copyWithCompanion(CancellationNoticesCompanion data) {
+    return CancellationNotice(
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      participantId: data.participantId.present
+          ? data.participantId.value
+          : this.participantId,
+      sendStatus: data.sendStatus.present
+          ? data.sendStatus.value
+          : this.sendStatus,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CancellationNotice(')
+          ..write('eventId: $eventId, ')
+          ..write('participantId: $participantId, ')
+          ..write('sendStatus: $sendStatus, ')
+          ..write('sentAt: $sentAt, ')
+          ..write('lastError: $lastError')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(eventId, participantId, sendStatus, sentAt, lastError);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CancellationNotice &&
+          other.eventId == this.eventId &&
+          other.participantId == this.participantId &&
+          other.sendStatus == this.sendStatus &&
+          other.sentAt == this.sentAt &&
+          other.lastError == this.lastError);
+}
+
+class CancellationNoticesCompanion extends UpdateCompanion<CancellationNotice> {
+  final Value<int> eventId;
+  final Value<int> participantId;
+  final Value<SendStatus> sendStatus;
+  final Value<DateTime?> sentAt;
+  final Value<String?> lastError;
+  const CancellationNoticesCompanion({
+    this.eventId = const Value.absent(),
+    this.participantId = const Value.absent(),
+    this.sendStatus = const Value.absent(),
+    this.sentAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+  });
+  CancellationNoticesCompanion.insert({
+    required int eventId,
+    this.participantId = const Value.absent(),
+    this.sendStatus = const Value.absent(),
+    this.sentAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+  }) : eventId = Value(eventId);
+  static Insertable<CancellationNotice> custom({
+    Expression<int>? eventId,
+    Expression<int>? participantId,
+    Expression<String>? sendStatus,
+    Expression<DateTime>? sentAt,
+    Expression<String>? lastError,
+  }) {
+    return RawValuesInsertable({
+      if (eventId != null) 'event_id': eventId,
+      if (participantId != null) 'participant_id': participantId,
+      if (sendStatus != null) 'send_status': sendStatus,
+      if (sentAt != null) 'sent_at': sentAt,
+      if (lastError != null) 'last_error': lastError,
+    });
+  }
+
+  CancellationNoticesCompanion copyWith({
+    Value<int>? eventId,
+    Value<int>? participantId,
+    Value<SendStatus>? sendStatus,
+    Value<DateTime?>? sentAt,
+    Value<String?>? lastError,
+  }) {
+    return CancellationNoticesCompanion(
+      eventId: eventId ?? this.eventId,
+      participantId: participantId ?? this.participantId,
+      sendStatus: sendStatus ?? this.sendStatus,
+      sentAt: sentAt ?? this.sentAt,
+      lastError: lastError ?? this.lastError,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventId.present) {
+      map['event_id'] = Variable<int>(eventId.value);
+    }
+    if (participantId.present) {
+      map['participant_id'] = Variable<int>(participantId.value);
+    }
+    if (sendStatus.present) {
+      map['send_status'] = Variable<String>(
+        $CancellationNoticesTable.$convertersendStatus.toSql(sendStatus.value),
+      );
+    }
+    if (sentAt.present) {
+      map['sent_at'] = Variable<DateTime>(sentAt.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CancellationNoticesCompanion(')
+          ..write('eventId: $eventId, ')
+          ..write('participantId: $participantId, ')
+          ..write('sendStatus: $sendStatus, ')
+          ..write('sentAt: $sentAt, ')
+          ..write('lastError: $lastError')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2603,6 +3262,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ParticipantsTable participants = $ParticipantsTable(this);
   late final $WishlistItemsTable wishlistItems = $WishlistItemsTable(this);
   late final $AssignmentsTable assignments = $AssignmentsTable(this);
+  late final $CancellationNoticesTable cancellationNotices =
+      $CancellationNoticesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2614,9 +3275,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     participants,
     wishlistItems,
     assignments,
+    cancellationNotices,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'email_templates',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('events', kind: UpdateKind.update)],
+    ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'email_templates',
@@ -2651,6 +3320,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('assignments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'events',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('cancellation_notices', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'participants',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('cancellation_notices', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2795,6 +3478,7 @@ typedef $$EmailTemplatesTableCreateCompanionBuilder =
       required String name,
       required String fileName,
       required TemplateFormat format,
+      Value<TemplateKind> kind,
       required String body,
       Value<DateTime> importedAt,
     });
@@ -2804,6 +3488,7 @@ typedef $$EmailTemplatesTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> fileName,
       Value<TemplateFormat> format,
+      Value<TemplateKind> kind,
       Value<String> body,
       Value<DateTime> importedAt,
     });
@@ -2816,20 +3501,43 @@ final class $$EmailTemplatesTableReferences
     super.$_typedResult,
   );
 
-  static MultiTypedResultKey<$EventsTable, List<Event>> _eventsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.events,
-    aliasName: 'email_templates__id__events__template_id',
-  );
+  static MultiTypedResultKey<$EventsTable, List<Event>>
+  _assignmentTemplateEventsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.events,
+        aliasName: 'email_templates__id__events__template_id',
+      );
 
-  $$EventsTableProcessedTableManager get eventsRefs {
+  $$EventsTableProcessedTableManager get assignmentTemplateEvents {
     final manager = $$EventsTableTableManager(
       $_db,
       $_db.events,
     ).filter((f) => f.templateId.id.sqlEquals($_itemColumn<int>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_eventsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _assignmentTemplateEventsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EventsTable, List<Event>>
+  _cancellationTemplateEventsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.events,
+        aliasName: 'email_templates__id__events__cancel_template_id',
+      );
+
+  $$EventsTableProcessedTableManager get cancellationTemplateEvents {
+    final manager = $$EventsTableTableManager(
+      $_db,
+      $_db.events,
+    ).filter((f) => f.cancelTemplateId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cancellationTemplateEventsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2866,6 +3574,12 @@ class $$EmailTemplatesTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<TemplateKind, TemplateKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   ColumnFilters<String> get body => $composableBuilder(
     column: $table.body,
     builder: (column) => ColumnFilters(column),
@@ -2876,7 +3590,7 @@ class $$EmailTemplatesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  Expression<bool> eventsRefs(
+  Expression<bool> assignmentTemplateEvents(
     Expression<bool> Function($$EventsTableFilterComposer f) f,
   ) {
     final $$EventsTableFilterComposer composer = $composerBuilder(
@@ -2884,6 +3598,31 @@ class $$EmailTemplatesTableFilterComposer
       getCurrentColumn: (t) => t.id,
       referencedTable: $db.events,
       getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EventsTableFilterComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> cancellationTemplateEvents(
+    Expression<bool> Function($$EventsTableFilterComposer f) f,
+  ) {
+    final $$EventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.cancelTemplateId,
       builder:
           (
             joinBuilder, {
@@ -2931,6 +3670,11 @@ class $$EmailTemplatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get body => $composableBuilder(
     column: $table.body,
     builder: (column) => ColumnOrderings(column),
@@ -2963,6 +3707,9 @@ class $$EmailTemplatesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<TemplateFormat, String> get format =>
       $composableBuilder(column: $table.format, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<TemplateKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
   GeneratedColumn<String> get body =>
       $composableBuilder(column: $table.body, builder: (column) => column);
 
@@ -2971,7 +3718,7 @@ class $$EmailTemplatesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  Expression<T> eventsRefs<T extends Object>(
+  Expression<T> assignmentTemplateEvents<T extends Object>(
     Expression<T> Function($$EventsTableAnnotationComposer a) f,
   ) {
     final $$EventsTableAnnotationComposer composer = $composerBuilder(
@@ -2979,6 +3726,31 @@ class $$EmailTemplatesTableAnnotationComposer
       getCurrentColumn: (t) => t.id,
       referencedTable: $db.events,
       getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> cancellationTemplateEvents<T extends Object>(
+    Expression<T> Function($$EventsTableAnnotationComposer a) f,
+  ) {
+    final $$EventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.cancelTemplateId,
       builder:
           (
             joinBuilder, {
@@ -3010,7 +3782,10 @@ class $$EmailTemplatesTableTableManager
           $$EmailTemplatesTableUpdateCompanionBuilder,
           (EmailTemplate, $$EmailTemplatesTableReferences),
           EmailTemplate,
-          PrefetchHooks Function({bool eventsRefs})
+          PrefetchHooks Function({
+            bool assignmentTemplateEvents,
+            bool cancellationTemplateEvents,
+          })
         > {
   $$EmailTemplatesTableTableManager(
     _$AppDatabase db,
@@ -3031,6 +3806,7 @@ class $$EmailTemplatesTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> fileName = const Value.absent(),
                 Value<TemplateFormat> format = const Value.absent(),
+                Value<TemplateKind> kind = const Value.absent(),
                 Value<String> body = const Value.absent(),
                 Value<DateTime> importedAt = const Value.absent(),
               }) => EmailTemplatesCompanion(
@@ -3038,6 +3814,7 @@ class $$EmailTemplatesTableTableManager
                 name: name,
                 fileName: fileName,
                 format: format,
+                kind: kind,
                 body: body,
                 importedAt: importedAt,
               ),
@@ -3047,6 +3824,7 @@ class $$EmailTemplatesTableTableManager
                 required String name,
                 required String fileName,
                 required TemplateFormat format,
+                Value<TemplateKind> kind = const Value.absent(),
                 required String body,
                 Value<DateTime> importedAt = const Value.absent(),
               }) => EmailTemplatesCompanion.insert(
@@ -3054,6 +3832,7 @@ class $$EmailTemplatesTableTableManager
                 name: name,
                 fileName: fileName,
                 format: format,
+                kind: kind,
                 body: body,
                 importedAt: importedAt,
               ),
@@ -3065,37 +3844,64 @@ class $$EmailTemplatesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({eventsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (eventsRefs) db.events],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (eventsRefs)
-                    await $_getPrefetchedDataByColumns<
-                      EmailTemplate,
-                      $EmailTemplatesTable,
-                      Event,
-                      $EventsTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$EmailTemplatesTableReferences
-                          ._eventsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$EmailTemplatesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).eventsRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'template_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                assignmentTemplateEvents = false,
+                cancellationTemplateEvents = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (assignmentTemplateEvents) db.events,
+                    if (cancellationTemplateEvents) db.events,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (assignmentTemplateEvents)
+                        await $_getPrefetchedDataByColumns<
+                          EmailTemplate,
+                          $EmailTemplatesTable,
+                          Event,
+                          $EventsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EmailTemplatesTableReferences
+                              ._assignmentTemplateEventsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EmailTemplatesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).assignmentTemplateEvents,
+                          currentColumn: 'id',
+                          referencedColumn: 'template_id',
+                          typedResults: items,
+                        ),
+                      if (cancellationTemplateEvents)
+                        await $_getPrefetchedDataByColumns<
+                          EmailTemplate,
+                          $EmailTemplatesTable,
+                          Event,
+                          $EventsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EmailTemplatesTableReferences
+                              ._cancellationTemplateEventsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EmailTemplatesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cancellationTemplateEvents,
+                          currentColumn: 'id',
+                          referencedColumn: 'cancel_template_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3112,7 +3918,10 @@ typedef $$EmailTemplatesTableProcessedTableManager =
       $$EmailTemplatesTableUpdateCompanionBuilder,
       (EmailTemplate, $$EmailTemplatesTableReferences),
       EmailTemplate,
-      PrefetchHooks Function({bool eventsRefs})
+      PrefetchHooks Function({
+        bool assignmentTemplateEvents,
+        bool cancellationTemplateEvents,
+      })
     >;
 typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int> id,
@@ -3127,6 +3936,10 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int?> templateId,
   Value<String?> emailSubject,
   Value<bool> archived,
+  Value<DateTime?> cancelledAt,
+  Value<String?> cancelNote,
+  Value<int?> cancelTemplateId,
+  Value<String?> cancelSubject,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3143,6 +3956,10 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<int?> templateId,
   Value<String?> emailSubject,
   Value<bool> archived,
+  Value<DateTime?> cancelledAt,
+  Value<String?> cancelNote,
+  Value<int?> cancelTemplateId,
+  Value<String?> cancelSubject,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3162,6 +3979,24 @@ final class $$EventsTableReferences
       $_db.emailTemplates,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_templateIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $EmailTemplatesTable _cancelTemplateIdTable(_$AppDatabase db) => db
+      .emailTemplates
+      .createAlias('events__cancel_template_id__email_templates__id');
+
+  $$EmailTemplatesTableProcessedTableManager? get cancelTemplateId {
+    final $_column = $_itemColumn<int>('cancel_template_id');
+    if ($_column == null) return null;
+    final manager = $$EmailTemplatesTableTableManager(
+      $_db,
+      $_db.emailTemplates,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cancelTemplateIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -3199,6 +4034,30 @@ final class $$EventsTableReferences
     ).filter((f) => f.eventId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_assignmentsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $CancellationNoticesTable,
+    List<CancellationNotice>
+  >
+  _cancellationNoticesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.cancellationNotices,
+        aliasName: 'events__id__cancellation_notices__event_id',
+      );
+
+  $$CancellationNoticesTableProcessedTableManager get cancellationNoticesRefs {
+    final manager = $$CancellationNoticesTableTableManager(
+      $_db,
+      $_db.cancellationNotices,
+    ).filter((f) => f.eventId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cancellationNoticesRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3269,6 +4128,21 @@ class $$EventsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cancelNote => $composableBuilder(
+    column: $table.cancelNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cancelSubject => $composableBuilder(
+    column: $table.cancelSubject,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<EventStatus, EventStatus, String> get status =>
       $composableBuilder(
         column: $table.status,
@@ -3284,6 +4158,29 @@ class $$EventsTableFilterComposer
     final $$EmailTemplatesTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.emailTemplates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmailTemplatesTableFilterComposer(
+            $db: $db,
+            $table: $db.emailTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$EmailTemplatesTableFilterComposer get cancelTemplateId {
+    final $$EmailTemplatesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cancelTemplateId,
       referencedTable: $db.emailTemplates,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -3344,6 +4241,31 @@ class $$EventsTableFilterComposer
           }) => $$AssignmentsTableFilterComposer(
             $db: $db,
             $table: $db.assignments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> cancellationNoticesRefs(
+    Expression<bool> Function($$CancellationNoticesTableFilterComposer f) f,
+  ) {
+    final $$CancellationNoticesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cancellationNotices,
+      getReferencedColumn: (t) => t.eventId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CancellationNoticesTableFilterComposer(
+            $db: $db,
+            $table: $db.cancellationNotices,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3418,6 +4340,21 @@ class $$EventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cancelNote => $composableBuilder(
+    column: $table.cancelNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cancelSubject => $composableBuilder(
+    column: $table.cancelSubject,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -3432,6 +4369,29 @@ class $$EventsTableOrderingComposer
     final $$EmailTemplatesTableOrderingComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.emailTemplates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmailTemplatesTableOrderingComposer(
+            $db: $db,
+            $table: $db.emailTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$EmailTemplatesTableOrderingComposer get cancelTemplateId {
+    final $$EmailTemplatesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cancelTemplateId,
       referencedTable: $db.emailTemplates,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -3500,6 +4460,21 @@ class $$EventsTableAnnotationComposer
   GeneratedColumn<bool> get archived =>
       $composableBuilder(column: $table.archived, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cancelNote => $composableBuilder(
+    column: $table.cancelNote,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cancelSubject => $composableBuilder(
+    column: $table.cancelSubject,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<EventStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -3510,6 +4485,29 @@ class $$EventsTableAnnotationComposer
     final $$EmailTemplatesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.emailTemplates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmailTemplatesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.emailTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$EmailTemplatesTableAnnotationComposer get cancelTemplateId {
+    final $$EmailTemplatesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cancelTemplateId,
       referencedTable: $db.emailTemplates,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -3578,6 +4576,32 @@ class $$EventsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> cancellationNoticesRefs<T extends Object>(
+    Expression<T> Function($$CancellationNoticesTableAnnotationComposer a) f,
+  ) {
+    final $$CancellationNoticesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.cancellationNotices,
+          getReferencedColumn: (t) => t.eventId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CancellationNoticesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.cancellationNotices,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$EventsTableTableManager
@@ -3595,8 +4619,10 @@ class $$EventsTableTableManager
           Event,
           PrefetchHooks Function({
             bool templateId,
+            bool cancelTemplateId,
             bool participantsRefs,
             bool assignmentsRefs,
+            bool cancellationNoticesRefs,
           })
         > {
   $$EventsTableTableManager(_$AppDatabase db, $EventsTable table)
@@ -3624,6 +4650,10 @@ class $$EventsTableTableManager
                 Value<int?> templateId = const Value.absent(),
                 Value<String?> emailSubject = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
+                Value<DateTime?> cancelledAt = const Value.absent(),
+                Value<String?> cancelNote = const Value.absent(),
+                Value<int?> cancelTemplateId = const Value.absent(),
+                Value<String?> cancelSubject = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion(
@@ -3639,6 +4669,10 @@ class $$EventsTableTableManager
                 templateId: templateId,
                 emailSubject: emailSubject,
                 archived: archived,
+                cancelledAt: cancelledAt,
+                cancelNote: cancelNote,
+                cancelTemplateId: cancelTemplateId,
+                cancelSubject: cancelSubject,
                 status: status,
                 createdAt: createdAt,
               ),
@@ -3656,6 +4690,10 @@ class $$EventsTableTableManager
                 Value<int?> templateId = const Value.absent(),
                 Value<String?> emailSubject = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
+                Value<DateTime?> cancelledAt = const Value.absent(),
+                Value<String?> cancelNote = const Value.absent(),
+                Value<int?> cancelTemplateId = const Value.absent(),
+                Value<String?> cancelSubject = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion.insert(
@@ -3671,6 +4709,10 @@ class $$EventsTableTableManager
                 templateId: templateId,
                 emailSubject: emailSubject,
                 archived: archived,
+                cancelledAt: cancelledAt,
+                cancelNote: cancelNote,
+                cancelTemplateId: cancelTemplateId,
+                cancelSubject: cancelSubject,
                 status: status,
                 createdAt: createdAt,
               ),
@@ -3685,14 +4727,17 @@ class $$EventsTableTableManager
           prefetchHooksCallback:
               ({
                 templateId = false,
+                cancelTemplateId = false,
                 participantsRefs = false,
                 assignmentsRefs = false,
+                cancellationNoticesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (participantsRefs) db.participants,
                     if (assignmentsRefs) db.assignments,
+                    if (cancellationNoticesRefs) db.cancellationNotices,
                   ],
                   addJoins:
                       <
@@ -3718,6 +4763,17 @@ class $$EventsTableTableManager
                                 ._templateIdTable(db),
                             referencedColumn: $$EventsTableReferences
                                 ._templateIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (cancelTemplateId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.cancelTemplateId,
+                            referencedTable: $$EventsTableReferences
+                                ._cancelTemplateIdTable(db),
+                            referencedColumn: $$EventsTableReferences
+                                ._cancelTemplateIdTable(db)
                                 .id,
                           ) as T;
                         }
@@ -3766,6 +4822,26 @@ class $$EventsTableTableManager
                           referencedColumn: 'event_id',
                           typedResults: items,
                         ),
+                      if (cancellationNoticesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Event,
+                          $EventsTable,
+                          CancellationNotice,
+                          $CancellationNoticesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EventsTableReferences
+                              ._cancellationNoticesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EventsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cancellationNoticesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'event_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3788,8 +4864,10 @@ typedef $$EventsTableProcessedTableManager =
       Event,
       PrefetchHooks Function({
         bool templateId,
+        bool cancelTemplateId,
         bool participantsRefs,
         bool assignmentsRefs,
+        bool cancellationNoticesRefs,
       })
     >;
 typedef $$ParticipantsTableCreateCompanionBuilder =
@@ -3880,6 +4958,30 @@ final class $$ParticipantsTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _receivingAssignmentsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $CancellationNoticesTable,
+    List<CancellationNotice>
+  >
+  _cancellationNoticesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.cancellationNotices,
+        aliasName: 'participants__id__cancellation_notices__participant_id',
+      );
+
+  $$CancellationNoticesTableProcessedTableManager get cancellationNoticesRefs {
+    final manager = $$CancellationNoticesTableTableManager(
+      $_db,
+      $_db.cancellationNotices,
+    ).filter((f) => f.participantId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cancellationNoticesRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -4005,6 +5107,31 @@ class $$ParticipantsTableFilterComposer
           }) => $$AssignmentsTableFilterComposer(
             $db: $db,
             $table: $db.assignments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> cancellationNoticesRefs(
+    Expression<bool> Function($$CancellationNoticesTableFilterComposer f) f,
+  ) {
+    final $$CancellationNoticesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cancellationNotices,
+      getReferencedColumn: (t) => t.participantId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CancellationNoticesTableFilterComposer(
+            $db: $db,
+            $table: $db.cancellationNotices,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4186,6 +5313,32 @@ class $$ParticipantsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> cancellationNoticesRefs<T extends Object>(
+    Expression<T> Function($$CancellationNoticesTableAnnotationComposer a) f,
+  ) {
+    final $$CancellationNoticesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.cancellationNotices,
+          getReferencedColumn: (t) => t.participantId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CancellationNoticesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.cancellationNotices,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ParticipantsTableTableManager
@@ -4206,6 +5359,7 @@ class $$ParticipantsTableTableManager
             bool wishlistItemsRefs,
             bool givingAssignments,
             bool receivingAssignments,
+            bool cancellationNoticesRefs,
           })
         > {
   $$ParticipantsTableTableManager(_$AppDatabase db, $ParticipantsTable table)
@@ -4261,6 +5415,7 @@ class $$ParticipantsTableTableManager
                 wishlistItemsRefs = false,
                 givingAssignments = false,
                 receivingAssignments = false,
+                cancellationNoticesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4268,6 +5423,7 @@ class $$ParticipantsTableTableManager
                     if (wishlistItemsRefs) db.wishlistItems,
                     if (givingAssignments) db.assignments,
                     if (receivingAssignments) db.assignments,
+                    if (cancellationNoticesRefs) db.cancellationNotices,
                   ],
                   addJoins:
                       <
@@ -4361,6 +5517,26 @@ class $$ParticipantsTableTableManager
                           referencedColumn: 'recipient_id',
                           typedResults: items,
                         ),
+                      if (cancellationNoticesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Participant,
+                          $ParticipantsTable,
+                          CancellationNotice,
+                          $CancellationNoticesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ParticipantsTableReferences
+                              ._cancellationNoticesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ParticipantsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cancellationNoticesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'participant_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4386,6 +5562,7 @@ typedef $$ParticipantsTableProcessedTableManager =
         bool wishlistItemsRefs,
         bool givingAssignments,
         bool receivingAssignments,
+        bool cancellationNoticesRefs,
       })
     >;
 typedef $$WishlistItemsTableCreateCompanionBuilder =
@@ -5210,6 +6387,423 @@ typedef $$AssignmentsTableProcessedTableManager =
       Assignment,
       PrefetchHooks Function({bool eventId, bool giverId, bool recipientId})
     >;
+typedef $$CancellationNoticesTableCreateCompanionBuilder =
+    CancellationNoticesCompanion Function({
+      required int eventId,
+      Value<int> participantId,
+      Value<SendStatus> sendStatus,
+      Value<DateTime?> sentAt,
+      Value<String?> lastError,
+    });
+typedef $$CancellationNoticesTableUpdateCompanionBuilder =
+    CancellationNoticesCompanion Function({
+      Value<int> eventId,
+      Value<int> participantId,
+      Value<SendStatus> sendStatus,
+      Value<DateTime?> sentAt,
+      Value<String?> lastError,
+    });
+
+final class $$CancellationNoticesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $CancellationNoticesTable,
+          CancellationNotice
+        > {
+  $$CancellationNoticesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $EventsTable _eventIdTable(_$AppDatabase db) =>
+      db.events.createAlias('cancellation_notices__event_id__events__id');
+
+  $$EventsTableProcessedTableManager get eventId {
+    final $_column = $_itemColumn<int>('event_id')!;
+
+    final manager = $$EventsTableTableManager(
+      $_db,
+      $_db.events,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_eventIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ParticipantsTable _participantIdTable(_$AppDatabase db) => db
+      .participants
+      .createAlias('cancellation_notices__participant_id__participants__id');
+
+  $$ParticipantsTableProcessedTableManager get participantId {
+    final $_column = $_itemColumn<int>('participant_id')!;
+
+    final manager = $$ParticipantsTableTableManager(
+      $_db,
+      $_db.participants,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_participantIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CancellationNoticesTableFilterComposer
+    extends Composer<_$AppDatabase, $CancellationNoticesTable> {
+  $$CancellationNoticesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<SendStatus, SendStatus, String>
+  get sendStatus => $composableBuilder(
+    column: $table.sendStatus,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EventsTableFilterComposer get eventId {
+    final $$EventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EventsTableFilterComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ParticipantsTableFilterComposer get participantId {
+    final $$ParticipantsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.participantId,
+      referencedTable: $db.participants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ParticipantsTableFilterComposer(
+            $db: $db,
+            $table: $db.participants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CancellationNoticesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CancellationNoticesTable> {
+  $$CancellationNoticesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get sendStatus => $composableBuilder(
+    column: $table.sendStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EventsTableOrderingComposer get eventId {
+    final $$EventsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EventsTableOrderingComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ParticipantsTableOrderingComposer get participantId {
+    final $$ParticipantsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.participantId,
+      referencedTable: $db.participants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ParticipantsTableOrderingComposer(
+            $db: $db,
+            $table: $db.participants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CancellationNoticesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CancellationNoticesTable> {
+  $$CancellationNoticesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<SendStatus, String> get sendStatus =>
+      $composableBuilder(
+        column: $table.sendStatus,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<DateTime> get sentAt =>
+      $composableBuilder(column: $table.sentAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  $$EventsTableAnnotationComposer get eventId {
+    final $$EventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ParticipantsTableAnnotationComposer get participantId {
+    final $$ParticipantsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.participantId,
+      referencedTable: $db.participants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ParticipantsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.participants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CancellationNoticesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CancellationNoticesTable,
+          CancellationNotice,
+          $$CancellationNoticesTableFilterComposer,
+          $$CancellationNoticesTableOrderingComposer,
+          $$CancellationNoticesTableAnnotationComposer,
+          $$CancellationNoticesTableCreateCompanionBuilder,
+          $$CancellationNoticesTableUpdateCompanionBuilder,
+          (CancellationNotice, $$CancellationNoticesTableReferences),
+          CancellationNotice,
+          PrefetchHooks Function({bool eventId, bool participantId})
+        > {
+  $$CancellationNoticesTableTableManager(
+    _$AppDatabase db,
+    $CancellationNoticesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CancellationNoticesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CancellationNoticesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CancellationNoticesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> eventId = const Value.absent(),
+                Value<int> participantId = const Value.absent(),
+                Value<SendStatus> sendStatus = const Value.absent(),
+                Value<DateTime?> sentAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+              }) => CancellationNoticesCompanion(
+                eventId: eventId,
+                participantId: participantId,
+                sendStatus: sendStatus,
+                sentAt: sentAt,
+                lastError: lastError,
+              ),
+          createCompanionCallback:
+              ({
+                required int eventId,
+                Value<int> participantId = const Value.absent(),
+                Value<SendStatus> sendStatus = const Value.absent(),
+                Value<DateTime?> sentAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+              }) => CancellationNoticesCompanion.insert(
+                eventId: eventId,
+                participantId: participantId,
+                sendStatus: sendStatus,
+                sentAt: sentAt,
+                lastError: lastError,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CancellationNoticesTable, CancellationNotice>(
+                    table,
+                  ),
+                  $$CancellationNoticesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({eventId = false, participantId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (eventId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.eventId,
+                        referencedTable: $$CancellationNoticesTableReferences
+                            ._eventIdTable(db),
+                        referencedColumn: $$CancellationNoticesTableReferences
+                            ._eventIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (participantId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.participantId,
+                        referencedTable: $$CancellationNoticesTableReferences
+                            ._participantIdTable(db),
+                        referencedColumn: $$CancellationNoticesTableReferences
+                            ._participantIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CancellationNoticesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CancellationNoticesTable,
+      CancellationNotice,
+      $$CancellationNoticesTableFilterComposer,
+      $$CancellationNoticesTableOrderingComposer,
+      $$CancellationNoticesTableAnnotationComposer,
+      $$CancellationNoticesTableCreateCompanionBuilder,
+      $$CancellationNoticesTableUpdateCompanionBuilder,
+      (CancellationNotice, $$CancellationNoticesTableReferences),
+      CancellationNotice,
+      PrefetchHooks Function({bool eventId, bool participantId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5226,4 +6820,6 @@ class $AppDatabaseManager {
       $$WishlistItemsTableTableManager(_db, _db.wishlistItems);
   $$AssignmentsTableTableManager get assignments =>
       $$AssignmentsTableTableManager(_db, _db.assignments);
+  $$CancellationNoticesTableTableManager get cancellationNotices =>
+      $$CancellationNoticesTableTableManager(_db, _db.cancellationNotices);
 }

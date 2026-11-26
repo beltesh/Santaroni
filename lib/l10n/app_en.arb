@@ -414,5 +414,43 @@
   "csvImported": "{count, plural, =1{Imported 1 participant} other{Imported {count} participants}}",
   "@csvImported": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+
+  "statusCancelled": "Cancelled",
+  "cancelEventMenu": "Cancel event…",
+  "cancelEventTitle": "Cancel “{name}”?",
+  "@cancelEventTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "cancelEventBody": "Cancelling is final: the event moves to Completed and can no longer be changed.",
+  "cancelNotify": "{count, plural, =1{Email the participant} other{Email all {count} participants}}",
+  "@cancelNotify": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cancelNotifyNone": "There are no participants to email.",
+  "cancelNoteLabel": "Note (optional)",
+  "cancelNoteHelp": "Included in the email, e.g. why, or what happens next.",
+  "cancelAccountNeeded": "To email participants, set up your email account first, or turn off the emails.",
+  "cancelConfirm": "Cancel event",
+  "keepEvent": "Keep event",
+  "eventCancelledSnack": "Event cancelled",
+  "cancelledReadOnly": "This event was cancelled on {date}, so it can no longer be changed. You can still review it, export a backup or delete it.",
+  "@cancelledReadOnly": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cancelNoticesTitle": "Cancellation emails",
+  "cancelNoticesNone": "Participants weren’t emailed about the cancellation.",
+  "cancelResendBody": "They’ll get the cancellation email again at {email}.",
+  "@cancelResendBody": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "templatesTabAssignment": "Assignment",
+  "templatesTabCancellation": "Cancellation",
+  "templateKindAssignment": "Assignment email",
+  "templateKindCancellation": "Cancellation email",
+  "templatesIntroCancellation": "Sent to every participant when you cancel an event. Import your own .html or .txt file with variables like the ones listed below, then pick it when cancelling.",
+  "builtinCancellationSubtitle": "HTML email, used unless you pick another one when cancelling",
+  "builtinCancellationDescription": "The same festive design, letting everyone know the event was cancelled, with the event details and your note if you write one. A plain-text version is sent along with it. Save a copy to use it as the starting point for your own design.",
+  "varNote": "Your note about the cancellation, when you write one",
+  "varHasDetailsCancellation": "Section shown when there’s a date or place"
 }

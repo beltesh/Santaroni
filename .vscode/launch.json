@@ -1,0 +1,50 @@
+{
+    // Run and Debug profiles (F5 runs the one selected in the Run and Debug
+    // sidebar). "deviceId" matches the start of a device's id or name, as
+    // listed by `flutter devices`.
+    //   debug:   hot reload, breakpoints; slower. For day-to-day work.
+    //   profile: optimized, with performance tools. For checking smoothness.
+    //   release: what users get. No debugging.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Windows",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "windows"
+        },
+        {
+            "name": "Pixel",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "pixel"
+        },
+        {
+            "name": "Windows (release)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "windows",
+            "flutterMode": "release"
+        },
+        {
+            "name": "Pixel (release)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "pixel",
+            "flutterMode": "release"
+        },
+        {
+            "name": "Pixel (profile)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "pixel",
+            "flutterMode": "profile"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Windows + Pixel",
+            "configurations": ["Windows", "Pixel"]
+        }
+    ]
+}

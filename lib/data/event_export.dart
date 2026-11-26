@@ -50,6 +50,10 @@ String buildEventJson({
       'currency': event.currency,
       'emailLanguage': event.languageCode,
       'status': event.status.name,
+      if (event.cancelledAt != null) ...{
+        'cancelledAt': event.cancelledAt!.toUtc().toIso8601String(),
+        'cancellationNote': event.cancelNote,
+      },
     },
     'participants': [
       for (final p in participants)

@@ -193,7 +193,7 @@ class _EventCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Chip(
-                    label: Text(statusLabel(l10n, event.status)),
+                    label: Text(eventStatusLabel(l10n, event)),
                     visualDensity: VisualDensity.compact,
                   ),
                 ],

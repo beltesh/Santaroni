@@ -181,6 +181,7 @@ void main() {
       expect(e.templateId, isNull);
       expect(e.emailSubject, isNull);
       expect(e.archived, isFalse, reason: 'the version 3 column was added');
+      expect(e.cancelledAt, isNull, reason: 'the version 4 columns were added');
       expect(
         (await repo.watchParticipants(1).first).single.participant.name,
         'Ana',

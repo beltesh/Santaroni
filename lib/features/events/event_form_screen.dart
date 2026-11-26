@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/providers.dart';
+import '../../core/email/builtin_templates.dart';
+import '../../core/email/email_renderer.dart';
 import '../../core/languages.dart';
 import '../../core/util/currency.dart';
 import '../../data/database.dart';
@@ -9,9 +11,7 @@ import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/dialogs.dart';
 import '../common/format.dart';
-import '../../core/email/builtin_templates.dart';
-import '../../core/email/email_renderer.dart';
-import '../../data/templates_repository.dart';
+import '../templates/template_picker.dart';
 import '../templates/templates_screen.dart';
 import 'event_dates.dart';
 import 'event_detail_screen.dart';
@@ -330,7 +330,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               },
             ),
             const SizedBox(height: 16),
-            _TemplatePicker(
+            TemplatePicker(
+              kind: TemplateKind.assignment,
               languageCode: _language!,
               value: _templateId,
               onChanged: (id) => setState(() => _templateId = id),
@@ -344,65 +345,6 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Chooses the email template: the built-in one for the event's language
-/// (null) or an imported one. Templates with problems can be picked (they
-/// may get fixed later) but are flagged, and sending refuses them.
-class _TemplatePicker extends ConsumerWidget {
-  const _TemplatePicker({
-    required this.languageCode,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String languageCode;
-  final int? value;
-  final ValueChanged<int?> onChanged;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final templates = ref.watch(templatesProvider);
-    final custom = templates.value ?? const <EmailTemplate>[];
-    // A deleted template falls back to the built-in one. Tell the form too,
-    // so it doesn't save an id that no longer exists.
-    final selected = custom.any((t) => t.id == value) ? value : null;
-    if (templates.hasValue && value != null && selected == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => onChanged(null));
-    }
-    final selectedHasProblem = custom
-        .where((t) => t.id == selected)
-        .any((t) => t.problem != null);
-
-    return DropdownButtonFormField<int?>(
-      key: ValueKey(Object.hash(selected, custom.length, languageCode)),
-      initialValue: selected,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: l10n.emailTemplate,
-        prefixIcon: const Icon(Icons.mail_outline),
-        errorText: selectedHasProblem ? l10n.templateNeedsFixingLong : null,
-        errorMaxLines: 3,
-      ),
-      items: [
-        DropdownMenuItem(
-          value: null,
-          child: Text(builtinTemplateLabel(l10n, languageCode)),
-        ),
-        for (final t in custom)
-          DropdownMenuItem(
-            value: t.id,
-            child: Text(
-              t.problem == null
-                  ? t.name
-                  : '${t.name} — ${l10n.templateNeedsFixing}',
-            ),
-          ),
-      ],
-      onChanged: onChanged,
     );
   }
 }

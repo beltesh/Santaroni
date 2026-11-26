@@ -175,59 +175,29 @@ class SendService {
     List<AssignmentView> todo, {
     void Function(int giverId)? onSending,
     bool Function()? shouldStop,
-  }) async {
-    if (todo.isEmpty) return const SendRunResult(SendOutcome.finished);
-
-    var sent = 0;
-    var failed = 0;
-    final session = await transport.open(p.account.smtpConfig, p.password);
-    try {
-      for (final (i, view) in todo.indexed) {
-        if (shouldStop?.call() ?? false) {
-          return SendRunResult(SendOutcome.stopped, sent: sent, failed: failed);
-        }
-        if (i > 0 && pause > Duration.zero) await Future<void>.delayed(pause);
-
-        onSending?.call(view.giver.id);
-        final email = renderEmail(
-          subject: p.template.subject,
-          body: p.template.body,
-          context: _contextFor(p, view),
-        );
-        try {
-          await session.send(
-            to: view.giver.email,
-            toName: view.giver.name,
-            email: email,
-          );
-          await events.markSent(p.event.id, view.giver.id);
-          sent++;
-        } on SendException catch (e) {
-          await events.markFailed(p.event.id, view.giver.id, e.detail);
-          failed++;
-          // Every later email would fail the same way: stop and let the user
-          // fix the account or connection, then resume.
-          if (e.failure == SendFailure.authentication ||
-              e.failure == SendFailure.connection) {
-            return SendRunResult(
-              SendOutcome.aborted,
-              sent: sent,
-              failed: failed,
-              error: e,
-            );
-          }
-        }
-      }
-      return SendRunResult(SendOutcome.finished, sent: sent, failed: failed);
-    } finally {
-      try {
-        await session.close();
-      } catch (_) {
-        // A connection that never opened can fail to close; the run's
-        // outcome (or the original error) is what matters.
-      }
-    }
-  }
+  }) => runEmailBatch(
+    transport: transport,
+    account: p.account,
+    password: p.password,
+    pause: pause,
+    items: [
+      for (final view in todo)
+        OutgoingEmail(
+          id: view.giver.id,
+          to: view.giver.email,
+          toName: view.giver.name,
+          render: () => renderEmail(
+            subject: p.template.subject,
+            body: p.template.body,
+            context: _contextFor(p, view),
+          ),
+        ),
+    ],
+    markSent: (id) => events.markSent(p.event.id, id),
+    markFailed: (id, error) => events.markFailed(p.event.id, id, error),
+    onSending: onSending,
+    shouldStop: shouldStop,
+  );
 
   EmailContext _contextFor(_Prepared p, AssignmentView view) {
     final e = p.event;
@@ -246,6 +216,81 @@ class SendService {
       organizerName: organizer.isEmpty ? null : organizer,
       wishlist: p.wishlists[view.recipient.id] ?? const [],
     );
+  }
+}
+
+/// One email to send in a batch; [id] identifies the participant.
+class OutgoingEmail {
+  const OutgoingEmail({
+    required this.id,
+    required this.to,
+    required this.toName,
+    required this.render,
+  });
+
+  final int id;
+  final String to;
+  final String toName;
+  final RenderedEmail Function() render;
+}
+
+/// Sends [items] over one connection, one at a time with a short [pause]
+/// in between, recording each outcome with [markSent]/[markFailed].
+/// [onSending] is told whose email is going out next; [shouldStop] is
+/// checked between emails. Login and connection errors stop the run, since
+/// every later email would fail the same way.
+Future<SendRunResult> runEmailBatch({
+  required MailTransport transport,
+  required EmailAccount account,
+  required String password,
+  required List<OutgoingEmail> items,
+  required Future<void> Function(int id) markSent,
+  required Future<void> Function(int id, String error) markFailed,
+  Duration pause = Duration.zero,
+  void Function(int id)? onSending,
+  bool Function()? shouldStop,
+}) async {
+  if (items.isEmpty) return const SendRunResult(SendOutcome.finished);
+
+  var sent = 0;
+  var failed = 0;
+  final session = await transport.open(account.smtpConfig, password);
+  try {
+    for (final (i, item) in items.indexed) {
+      if (shouldStop?.call() ?? false) {
+        return SendRunResult(SendOutcome.stopped, sent: sent, failed: failed);
+      }
+      if (i > 0 && pause > Duration.zero) await Future<void>.delayed(pause);
+
+      onSending?.call(item.id);
+      final email = item.render();
+      try {
+        await session.send(to: item.to, toName: item.toName, email: email);
+        await markSent(item.id);
+        sent++;
+      } on SendException catch (e) {
+        await markFailed(item.id, e.detail);
+        failed++;
+        // Stop and let the user fix the account or connection, then resume.
+        if (e.failure == SendFailure.authentication ||
+            e.failure == SendFailure.connection) {
+          return SendRunResult(
+            SendOutcome.aborted,
+            sent: sent,
+            failed: failed,
+            error: e,
+          );
+        }
+      }
+    }
+    return SendRunResult(SendOutcome.finished, sent: sent, failed: failed);
+  } finally {
+    try {
+      await session.close();
+    } catch (_) {
+      // A connection that never opened can fail to close; the run's
+      // outcome (or the original error) is what matters.
+    }
   }
 }
 

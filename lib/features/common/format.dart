@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/languages.dart';
 import '../../core/util/currency.dart';
 import '../../data/database.dart';
+import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 
 String _localeName(BuildContext context) =>
@@ -55,6 +56,11 @@ String statusLabel(AppLocalizations l10n, EventStatus status) =>
       EventStatus.sending => l10n.statusSending,
       EventStatus.sent => l10n.statusSent,
     };
+
+/// The status chip text: "Cancelled" for cancelled events, otherwise the
+/// sending stage.
+String eventStatusLabel(AppLocalizations l10n, Event event) =>
+    event.isCancelled ? l10n.statusCancelled : statusLabel(l10n, event.status);
 
 String initials(String name) {
   final parts = name

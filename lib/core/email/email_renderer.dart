@@ -4,6 +4,7 @@ import 'package:mustache_template/mustache.dart';
 import 'css_inliner.dart';
 import 'email_context.dart';
 import 'html_to_text.dart';
+import 'template_kind.dart';
 
 enum BodyFormat { text, html }
 
@@ -74,7 +75,7 @@ class TemplateProblem implements Exception {
 RenderedEmail renderEmail({
   required String subject,
   required BodyTemplate body,
-  required EmailContext context,
+  required TemplateValues context,
 }) {
   final values = context.toMustache();
   final renderedSubject = _render(
@@ -116,27 +117,35 @@ RenderedEmail renderEmail({
 }
 
 /// Returns why [subject] can't be used, or null when it's fine.
-TemplateProblem? checkSubject(String subject) =>
-    _check(TemplatePart.subject, subject);
+TemplateProblem? checkSubject(
+  String subject, {
+  TemplateKind kind = TemplateKind.assignment,
+}) => _check(TemplatePart.subject, subject, kind);
 
-/// Returns why [body] can't be used, or null when it's fine: unknown
-/// variables (usually typos) or broken `{{#Section}}` tags.
-TemplateProblem? checkBody(BodyTemplate body) =>
+/// Returns why [body] can't be used for a [kind] of email, or null when
+/// it's fine: unknown variables (usually typos, or ones that belong to the
+/// other kind) or broken `{{#Section}}` tags.
+TemplateProblem? checkBody(
+  BodyTemplate body, {
+  TemplateKind kind = TemplateKind.assignment,
+}) =>
     _check(
       TemplatePart.body,
       body.source,
+      kind,
       escapeHtml: body.format == BodyFormat.html,
     ) ??
     (body.alternativeText == null
         ? null
-        : _check(TemplatePart.body, body.alternativeText!));
+        : _check(TemplatePart.body, body.alternativeText!, kind));
 
 TemplateProblem? _check(
   TemplatePart part,
-  String source, {
+  String source,
+  TemplateKind kind, {
   bool escapeHtml = false,
 }) {
-  final unknown = _findUnknownVariable(part, source);
+  final unknown = _findUnknownVariable(part, source, kind);
   if (unknown != null) return unknown;
   try {
     // Render with full and with minimal sample data, so both branches of
@@ -145,7 +154,7 @@ TemplateProblem? _check(
       _render(
         part,
         source,
-        EmailContext.sample('en', minimal: minimal).toMustache(),
+        sampleValues(kind, 'en', minimal: minimal).toMustache(),
         escapeHtml: escapeHtml,
       );
     }
@@ -155,11 +164,11 @@ TemplateProblem? _check(
   }
 }
 
-/// Names valid anywhere, plus the fields of each wishlist item.
-final _knownTags = {
-  for (final v in TemplateVariable.values) v.tag,
-  'Text',
-  'Url',
+/// Names valid in a [kind] of template, plus the fields of each wishlist
+/// item.
+Set<String> _knownTags(TemplateKind kind) => {
+  for (final v in TemplateVariable.forKind(kind)) v.tag,
+  if (kind == TemplateKind.assignment) ...['Text', 'Url'],
   '.',
 };
 
@@ -167,12 +176,17 @@ final _tagPattern = RegExp(r'\{\{(\{?)\s*([#^/&!>]?)\s*([^}]*?)\s*\}?\}\}');
 
 /// Unknown variables silently render as nothing, so catch typos like
 /// `{{EventNmae}}` before any email goes out.
-TemplateProblem? _findUnknownVariable(TemplatePart part, String source) {
+TemplateProblem? _findUnknownVariable(
+  TemplatePart part,
+  String source,
+  TemplateKind kind,
+) {
+  final known = _knownTags(kind);
   for (final m in _tagPattern.allMatches(source)) {
     final sigil = m[2]!;
     final name = m[3]!;
     if (sigil == '!' || name.isEmpty) continue; // Mustache comment.
-    if (!_knownTags.contains(name.split('.').first)) {
+    if (!known.contains(name.split('.').first)) {
       final (line, column) = _position(source, m.start);
       return TemplateProblem(
         part,

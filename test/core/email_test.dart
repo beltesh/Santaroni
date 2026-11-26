@@ -6,6 +6,7 @@ import 'package:santaroni/core/email/css_inliner.dart';
 import 'package:santaroni/core/email/email_context.dart';
 import 'package:santaroni/core/email/email_renderer.dart';
 import 'package:santaroni/core/email/html_to_text.dart';
+import 'package:santaroni/core/email/template_kind.dart';
 import 'package:santaroni/core/model/wishlist_entry.dart';
 
 /// Narrow no-break space: CLDR puts it before AM/PM.
@@ -162,27 +163,42 @@ void main() {
   });
 
   group('built-in template', () {
-    test('Brazilian Portuguese reads naturally and formats the Brazilian way', () {
-      final ctx = EmailContext.sample('pt');
-      expect(ctx.eventDate, 'domingo, 20 de dezembro de 2026');
-      expect(ctx.budget, contains('R\$'));
-      expect(ctx.budget, contains('100'));
+    test(
+      'Brazilian Portuguese reads naturally and formats the Brazilian way',
+      () {
+        final ctx = EmailContext.sample('pt');
+        expect(ctx.eventDate, 'domingo, 20 de dezembro de 2026');
+        expect(ctx.budget, contains('R\$'));
+        expect(ctx.budget, contains('100'));
 
-      final email = renderEmail(
-        subject: defaultSubject('pt'),
-        body: builtinBody('pt'),
-        context: ctx,
-      );
-      expect(email.subject, '🎁 Amigo Secreto da Firma 2026: descubra quem você tirou');
-      expect(email.text, startsWith('Oi, João!\n\nVocê tirou Beatriz no amigo secreto! 🎁'));
-      expect(email.text, contains('Onde: Casa da Ana, Vila Madalena'));
-      expect(email.text, contains('Beatriz adoraria ganhar:\n• Livro de receitas'));
-      expect(email.text, contains('Shh… mantenha em segredo, mantenha seguro! 🤫'));
-      expect(email.html, contains('<p class="lead"'));
-      expect(email.html, contains('Você tirou'));
-      expect(email.html, contains('Feito com Santaroni'));
-      expect(email.html, contains('<html lang="pt">'));
-    });
+        final email = renderEmail(
+          subject: defaultSubject('pt'),
+          body: builtinBody('pt'),
+          context: ctx,
+        );
+        expect(
+          email.subject,
+          '🎁 Amigo Secreto da Firma 2026: descubra quem você tirou',
+        );
+        expect(
+          email.text,
+          startsWith('Oi, João!\n\nVocê tirou Beatriz no amigo secreto! 🎁'),
+        );
+        expect(email.text, contains('Onde: Casa da Ana, Vila Madalena'));
+        expect(
+          email.text,
+          contains('Beatriz adoraria ganhar:\n• Livro de receitas'),
+        );
+        expect(
+          email.text,
+          contains('Shh… mantenha em segredo, mantenha seguro! 🤫'),
+        );
+        expect(email.html, contains('<p class="lead"'));
+        expect(email.html, contains('Você tirou'));
+        expect(email.html, contains('Feito com Santaroni'));
+        expect(email.html, contains('<html lang="pt">'));
+      },
+    );
 
     test('is an HTML email with a hand-written plain-text version', () {
       for (final lang in builtinLanguages) {
@@ -373,6 +389,94 @@ Shh… keep it secret, keep it safe! 🤫
           ),
         ),
         isNull,
+      );
+    });
+  });
+
+  group('cancellation template', () {
+    const cancel = TemplateKind.cancellation;
+
+    test('passes the checks in every language', () {
+      for (final lang in builtinLanguages) {
+        expect(
+          checkSubject(defaultCancellationSubject(lang), kind: cancel),
+          isNull,
+        );
+        expect(checkBody(builtinCancellationBody(lang), kind: cancel), isNull);
+        // It's not an assignment template, and vice versa.
+        expect(checkBody(builtinCancellationBody(lang)), isNotNull);
+        expect(checkBody(builtinBody(lang), kind: cancel), isNotNull);
+      }
+    });
+
+    test('keeps the assignment email look', () {
+      final html = builtinCancellationHtml('en');
+      expect(html, contains('class="card"'));
+      expect(html, contains('class="cancelled"'));
+      expect(html, isNot(contains('RecipientName')));
+    });
+
+    test('shows the note only when there is one', () {
+      final full = renderEmail(
+        subject: defaultCancellationSubject('pt'),
+        body: builtinCancellationBody('pt'),
+        context: CancellationContext.sample('pt'),
+      );
+      expect(full.subject, '❌ Cancelado: Amigo Secreto da Firma 2026');
+      expect(full.text, startsWith('Oi, João!\n\nSentimos avisar'));
+      expect(full.text, contains('Um recado de Carol:\nMuita gente'));
+      expect(full.html, contains('Um recado de Carol'));
+
+      final minimal = renderEmail(
+        subject: defaultCancellationSubject('es'),
+        body: builtinCancellationBody('es'),
+        context: CancellationContext.sample('es', minimal: true),
+      );
+      expect(minimal.text, isNot(contains('mensaje')));
+      expect(minimal.text, isNot(contains('Cuándo')));
+      expect(minimal.html, isNot(contains('class="note"')));
+      expect(minimal.html, isNot(contains('Enviado por')));
+    });
+
+    test('a note without an organizer name still has a heading', () {
+      final email = renderEmail(
+        subject: 'S',
+        body: builtinCancellationBody('en'),
+        context: CancellationContext(
+          eventName: 'Party',
+          participantName: 'Ana',
+          participantEmail: 'ana@example.com',
+          note: '<b>See you</b> in January',
+        ),
+      );
+      expect(
+        email.text,
+        contains('A note from the organizer:\n<b>See you</b>'),
+      );
+      expect(email.html, contains('&lt;b&gt;See you&lt;/b&gt;'));
+    });
+
+    test('variables belong to their kind', () {
+      BodyTemplate t(String s) => BodyTemplate(BodyFormat.text, s);
+      expect(
+        checkBody(
+          t('{{ParticipantName}} {{#Note}}{{Note}}{{/Note}}'),
+          kind: cancel,
+        ),
+        isNull,
+      );
+      expect(checkBody(t('{{Note}}'))!.unknownVariable, 'Note');
+      expect(
+        checkBody(t('{{GiverName}}'), kind: cancel)!.unknownVariable,
+        'GiverName',
+      );
+      expect(
+        checkBody(t('{{#Wishlist}}{{Text}}{{/Wishlist}}'), kind: cancel),
+        isNotNull,
+      );
+      expect(
+        checkSubject('{{Budget}}', kind: cancel)!.unknownVariable,
+        'Budget',
       );
     });
   });

@@ -2,6 +2,10 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../core/email/template_kind.dart';
+
+export '../core/email/template_kind.dart' show TemplateKind;
+
 part 'database.g.dart';
 
 enum EventStatus {
@@ -32,8 +36,8 @@ class Settings extends Table {
 
 enum TemplateFormat { text, html }
 
-/// Email body templates imported from files. The built-in default (plain
-/// text, per language) lives in code and is not stored here.
+/// Email body templates imported from files. The built-in ones (per kind
+/// and language) live in code and are not stored here.
 class EmailTemplates extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -44,6 +48,11 @@ class EmailTemplates extends Table {
   TextColumn get fileName => text()();
 
   TextColumn get format => textEnum<TemplateFormat>()();
+
+  /// Assignment or cancellation email; each kind has its own variables.
+  TextColumn get kind => textEnum<TemplateKind>().withDefault(
+    Constant(TemplateKind.assignment.name),
+  )();
 
   /// The file's contents, with `{{Variables}}`. Stored so that moving or
   /// deleting the original file doesn't break anything.
@@ -75,8 +84,9 @@ class Events extends Table {
   /// Language used for this event's emails.
   TextColumn get languageCode => text().withDefault(const Constant('en'))();
 
-  /// Imported template for the email body, or null for the built-in plain
-  /// text one in [languageCode].
+  /// Imported template for the email body, or null for the built-in one in
+  /// [languageCode].
+  @ReferenceName('assignmentTemplateEvents')
   IntColumn get templateId => integer().nullable().references(
     EmailTemplates,
     #id,
@@ -90,6 +100,25 @@ class Events extends Table {
   /// Manually moved to "Completed". Only used for events without a date;
   /// dated events are completed once their date has passed.
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
+
+  /// When the event was cancelled. Cancelling is final: the event is then
+  /// completed (read-only), whatever its date.
+  DateTimeColumn get cancelledAt => dateTime().nullable()();
+
+  /// The organizer's optional message in the cancellation email.
+  TextColumn get cancelNote => text().nullable()();
+
+  /// Imported cancellation template, or null for the built-in one. Kept so
+  /// failed cancellation emails can be retried with the same template.
+  @ReferenceName('cancellationTemplateEvents')
+  IntColumn get cancelTemplateId => integer().nullable().references(
+    EmailTemplates,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Subject of the cancellation email, or null for the default.
+  TextColumn get cancelSubject => text().nullable()();
 
   TextColumn get status =>
       textEnum<EventStatus>().withDefault(Constant(EventStatus.draft.name))();
@@ -144,6 +173,23 @@ class Assignments extends Table {
   ];
 }
 
+/// One cancellation email per participant, created when an event is
+/// cancelled with "notify participants" on.
+class CancellationNotices extends Table {
+  IntColumn get eventId =>
+      integer().references(Events, #id, onDelete: KeyAction.cascade)();
+  IntColumn get participantId =>
+      integer().references(Participants, #id, onDelete: KeyAction.cascade)();
+
+  TextColumn get sendStatus =>
+      textEnum<SendStatus>().withDefault(Constant(SendStatus.pending.name))();
+  DateTimeColumn get sentAt => dateTime().nullable()();
+  TextColumn get lastError => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {participantId};
+}
+
 @DriftDatabase(
   tables: [
     Settings,
@@ -152,6 +198,7 @@ class Assignments extends Table {
     Participants,
     WishlistItems,
     Assignments,
+    CancellationNotices,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -171,7 +218,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -187,6 +234,17 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.addColumn(events, events.archived);
+      }
+      if (from < 4) {
+        // Before v2, the table was just recreated with this column.
+        if (from >= 2) {
+          await m.addColumn(emailTemplates, emailTemplates.kind);
+        }
+        await m.addColumn(events, events.cancelledAt);
+        await m.addColumn(events, events.cancelNote);
+        await m.addColumn(events, events.cancelTemplateId);
+        await m.addColumn(events, events.cancelSubject);
+        await m.createTable(cancellationNotices);
       }
     },
     beforeOpen: (details) async {

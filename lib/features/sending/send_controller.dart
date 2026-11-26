@@ -15,7 +15,7 @@ class SendRunState {
   final bool running;
   final bool stopRequested;
 
-  /// Whose email is going out right now.
+  /// Whose email is going out right now (participant id).
   final int? currentGiverId;
 
   /// How the last run ended.
@@ -41,48 +41,92 @@ class SendRunState {
   );
 }
 
-/// Runs sending for one event. Kept alive (not auto-disposed) so a run
-/// continues if the user leaves the screen. Per-person results live in the
-/// database; this only tracks the run itself.
-class SendController extends Notifier<SendRunState> {
-  SendController(this.eventId);
-
-  final int eventId;
-
+/// Runs a batch of emails, tracking only the run itself (per-person
+/// results live in the database). Kept alive (not auto-disposed) so a run
+/// continues if the user leaves the screen.
+abstract class EmailRunController extends Notifier<SendRunState> {
   @override
   SendRunState build() => const SendRunState();
-
-  Future<void> sendAll({bool includeFailed = true}) => _run(
-    (service) => service.sendAll(
-      eventId,
-      includeFailed: includeFailed,
-      onSending: _onSending,
-      shouldStop: () => state.stopRequested,
-    ),
-  );
-
-  Future<void> resend(int giverId) => _run(
-    (service) => service.resend(eventId, giverId, onSending: _onSending),
-  );
 
   void stop() {
     if (state.running) state = state.copyWith(stopRequested: true);
   }
 
-  void _onSending(int giverId) =>
-      state = state.copyWith(currentGiverId: () => giverId);
+  bool get stopRequested => state.stopRequested;
 
-  Future<void> _run(Future<SendRunResult> Function(SendService) action) async {
+  void onSending(int id) => state = state.copyWith(currentGiverId: () => id);
+
+  Future<void> run(Future<SendRunResult> Function() action) async {
     if (state.running) return;
     state = const SendRunState(running: true);
     try {
-      final result = await action(ref.read(sendServiceProvider));
-      state = SendRunState(lastResult: result);
+      state = SendRunState(lastResult: await action());
     } catch (e) {
       state = SendRunState(lastError: e);
     }
   }
 }
+
+/// Sends one event's assignments.
+class SendController extends EmailRunController {
+  SendController(this.eventId);
+
+  final int eventId;
+
+  Future<void> sendAll({bool includeFailed = true}) => run(
+    () => ref
+        .read(sendServiceProvider)
+        .sendAll(
+          eventId,
+          includeFailed: includeFailed,
+          onSending: onSending,
+          shouldStop: () => stopRequested,
+        ),
+  );
+
+  Future<void> resend(int giverId) => run(
+    () => ref
+        .read(sendServiceProvider)
+        .resend(eventId, giverId, onSending: onSending),
+  );
+}
+
+/// Sends one cancelled event's cancellation emails.
+class CancelNoticesController extends EmailRunController {
+  CancelNoticesController(this.eventId);
+
+  final int eventId;
+
+  Future<void> sendAll() => run(
+    () => ref
+        .read(cancellationServiceProvider)
+        .sendNotices(
+          eventId,
+          onSending: onSending,
+          shouldStop: () => stopRequested,
+        ),
+  );
+
+  Future<void> resend(int participantId) => run(
+    () => ref
+        .read(cancellationServiceProvider)
+        .resendNotice(eventId, participantId, onSending: onSending),
+  );
+}
+
+final cancelNoticesControllerProvider =
+    NotifierProvider.family<CancelNoticesController, SendRunState, int>(
+      CancelNoticesController.new,
+    );
+
+/// What stops a cancelled event's emails from going out.
+final noticeBlockersProvider = FutureProvider.autoDispose
+    .family<Set<SendBlocker>, int>((ref, eventId) {
+      ref.watch(eventProvider(eventId));
+      ref.watch(accountStatusProvider);
+      ref.watch(templatesProvider);
+      return ref.read(cancellationServiceProvider).noticeBlockers(eventId);
+    });
 
 final sendControllerProvider =
     NotifierProvider.family<SendController, SendRunState, int>(

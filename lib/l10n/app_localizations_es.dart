@@ -1054,4 +1054,101 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get statusCancelled => 'Cancelado';
+
+  @override
+  String get cancelEventMenu => 'Cancelar evento…';
+
+  @override
+  String cancelEventTitle(String name) {
+    return '¿Cancelar «$name»?';
+  }
+
+  @override
+  String get cancelEventBody =>
+      'Cancelar es definitivo: el evento pasa a Terminados y ya no se podrá modificar.';
+
+  @override
+  String cancelNotify(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Avisar por correo a los $count participantes',
+      one: 'Avisar por correo al participante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cancelNotifyNone => 'No hay participantes a quienes avisar.';
+
+  @override
+  String get cancelNoteLabel => 'Nota (opcional)';
+
+  @override
+  String get cancelNoteHelp =>
+      'Se incluye en el correo; por ejemplo, el motivo o qué sigue.';
+
+  @override
+  String get cancelAccountNeeded =>
+      'Para avisar por correo, primero configura tu cuenta de correo o desactiva los correos.';
+
+  @override
+  String get cancelConfirm => 'Cancelar evento';
+
+  @override
+  String get keepEvent => 'Conservar evento';
+
+  @override
+  String get eventCancelledSnack => 'Evento cancelado';
+
+  @override
+  String cancelledReadOnly(String date) {
+    return 'Este evento se canceló el $date, así que ya no se puede modificar. Aún puedes revisarlo, exportar un respaldo o eliminarlo.';
+  }
+
+  @override
+  String get cancelNoticesTitle => 'Correos de cancelación';
+
+  @override
+  String get cancelNoticesNone =>
+      'No se avisó por correo a los participantes de la cancelación.';
+
+  @override
+  String cancelResendBody(String email) {
+    return 'Recibirá otra vez el correo de cancelación en $email.';
+  }
+
+  @override
+  String get templatesTabAssignment => 'Asignación';
+
+  @override
+  String get templatesTabCancellation => 'Cancelación';
+
+  @override
+  String get templateKindAssignment => 'Correo de asignación';
+
+  @override
+  String get templateKindCancellation => 'Correo de cancelación';
+
+  @override
+  String get templatesIntroCancellation =>
+      'Se envía a cada participante cuando cancelas un evento. Importa tu propio archivo .html o .txt con variables como las de abajo y elígelo al cancelar.';
+
+  @override
+  String get builtinCancellationSubtitle =>
+      'Correo HTML; se usa a menos que elijas otra al cancelar';
+
+  @override
+  String get builtinCancellationDescription =>
+      'El mismo diseño festivo, para avisar a todos que el evento se canceló, con los datos del evento y tu nota si escribes una. Se envía junto con una versión en texto simple. Guarda una copia para usarla como punto de partida de tu propio diseño.';
+
+  @override
+  String get varNote => 'Tu nota sobre la cancelación, si escribes una';
+
+  @override
+  String get varHasDetailsCancellation =>
+      'Sección que aparece cuando hay fecha o lugar';
 }

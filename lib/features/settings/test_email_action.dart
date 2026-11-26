@@ -33,7 +33,9 @@ Future<void> sendTestEmail(
   required String subject,
   required BodyTemplate body,
   required String languageCode,
+  TemplateKind kind = TemplateKind.assignment,
   Event? event,
+  String? note,
 }) async {
   final l10n = AppLocalizations.of(context);
   final account = await ref.read(emailAccountRepositoryProvider).load();
@@ -46,7 +48,9 @@ Future<void> sendTestEmail(
         subject: subject,
         body: body,
         languageCode: languageCode,
+        kind: kind,
         event: event,
+        note: note,
         testPrefix: l10n.testEmailPrefix,
       );
 

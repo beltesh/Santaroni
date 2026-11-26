@@ -45,18 +45,27 @@ Future<PlatformFile?> _pickTemplateFile() => FilePicker.pickFile(
   allowedExtensions: templateFileExtensions,
 );
 
-/// Lists the built-in template and imported template files.
+/// Lists the built-in and imported templates, one tab per [TemplateKind].
 class TemplatesScreen extends ConsumerWidget {
-  const TemplatesScreen({super.key});
+  const TemplatesScreen({
+    super.key,
+    this.initialKind = TemplateKind.assignment,
+  });
 
-  Future<void> _import(BuildContext context, WidgetRef ref) async {
+  final TemplateKind initialKind;
+
+  Future<void> _import(
+    BuildContext context,
+    WidgetRef ref,
+    TemplateKind kind,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final file = await _pickTemplateFile();
     if (file == null || !context.mounted) return;
     try {
       final template = await ref
           .read(templatesRepositoryProvider)
-          .importFile(file.name, await file.readAsBytes());
+          .importFile(file.name, await file.readAsBytes(), kind: kind);
       if (!context.mounted) return;
       final problem = template.problem;
       showSnack(
@@ -75,57 +84,113 @@ class TemplatesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    return DefaultTabController(
+      length: TemplateKind.values.length,
+      initialIndex: initialKind.index,
+      child: Builder(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.emailTemplates),
+            bottom: TabBar(
+              tabs: [
+                for (final kind in TemplateKind.values)
+                  Tab(text: templateKindTab(l10n, kind)),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              for (final kind in TemplateKind.values) _TemplateList(kind: kind),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            icon: const Icon(Icons.upload_file),
+            label: Text(l10n.importTemplate),
+            onPressed: () => _import(
+              context,
+              ref,
+              TemplateKind.values[DefaultTabController.of(context).index],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String templateKindTab(AppLocalizations l10n, TemplateKind kind) =>
+    switch (kind) {
+      TemplateKind.assignment => l10n.templatesTabAssignment,
+      TemplateKind.cancellation => l10n.templatesTabCancellation,
+    };
+
+String templateKindLabel(AppLocalizations l10n, TemplateKind kind) =>
+    switch (kind) {
+      TemplateKind.assignment => l10n.templateKindAssignment,
+      TemplateKind.cancellation => l10n.templateKindCancellation,
+    };
+
+/// One tab: the built-in templates and the imported ones of a [kind].
+class _TemplateList extends ConsumerWidget {
+  const _TemplateList({required this.kind});
+
+  final TemplateKind kind;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final templates =
-        ref.watch(templatesProvider).value ?? const <EmailTemplate>[];
+    final templates = [
+      for (final t in ref.watch(templatesProvider).value ?? const [])
+        if (t.kind == kind) t,
+    ];
 
     Widget header(String text) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Text(text, style: theme.textTheme.titleSmall),
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.emailTemplates)),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 96),
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(l10n.templatesIntro),
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 96),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Text(switch (kind) {
+            TemplateKind.assignment => l10n.templatesIntro,
+            TemplateKind.cancellation => l10n.templatesIntroCancellation,
+          }),
+        ),
+        header(l10n.templatesBuiltIn),
+        for (final lang in builtinLanguages)
+          ListTile(
+            leading: const Icon(Icons.mark_email_read_outlined),
+            title: Text(builtinTemplateLabel(l10n, lang)),
+            subtitle: Text(switch (kind) {
+              TemplateKind.assignment => l10n.builtinTemplateSubtitle,
+              TemplateKind.cancellation => l10n.builtinCancellationSubtitle,
+            }),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    _BuiltinTemplateScreen(kind: kind, languageCode: lang),
+              ),
+            ),
           ),
-          header(l10n.templatesBuiltIn),
-          for (final lang in builtinLanguages)
-            ListTile(
-              leading: const Icon(Icons.mark_email_read_outlined),
-              title: Text(builtinTemplateLabel(l10n, lang)),
-              subtitle: Text(l10n.builtinTemplateSubtitle),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => _BuiltinTemplateScreen(languageCode: lang),
-                ),
+        header(l10n.templatesImported),
+        if (templates.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              l10n.templatesImportedEmpty,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          header(l10n.templatesImported),
-          if (templates.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                l10n.templatesImportedEmpty,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          for (final t in templates) _TemplateTile(template: t),
-          const SizedBox(height: 8),
-          const _VariablesHelp(),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.upload_file),
-        label: Text(l10n.importTemplate),
-        onPressed: () => _import(context, ref),
-      ),
+          ),
+        for (final t in templates) _TemplateTile(template: t),
+        const SizedBox(height: 8),
+        _VariablesHelp(kind: kind),
+      ],
     );
   }
 }
@@ -240,6 +305,7 @@ class TemplateDetailScreen extends ConsumerWidget {
             leading: Icon(isHtml ? Icons.html : Icons.notes),
             title: Text(t.fileName),
             subtitle: Text(
+              '${templateKindLabel(l10n, t.kind)} · '
               '${isHtml ? l10n.formatHtml : l10n.formatText} · '
               '${l10n.templateImportedOn(DateFormat.yMMMd(locale).add_jm().format(t.importedAt))}',
             ),
@@ -279,9 +345,10 @@ class TemplateDetailScreen extends ConsumerWidget {
                     sendTestEmail(
                       context,
                       ref,
-                      subject: defaultSubject(lang),
+                      subject: defaultSubjectFor(t.kind, lang),
                       body: t.bodyTemplate,
                       languageCode: lang,
+                      kind: t.kind,
                     );
                   },
                   icon: const Icon(Icons.send_outlined),
@@ -304,7 +371,7 @@ class TemplateDetailScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            _SamplePreview(body: t.bodyTemplate),
+            _SamplePreview(body: t.bodyTemplate, kind: t.kind),
           ],
         ],
       ),
@@ -315,16 +382,26 @@ class TemplateDetailScreen extends ConsumerWidget {
 /// Built-in template: explains it, offers its HTML as a file to customize,
 /// and shows the plain-text version that goes along with it.
 class _BuiltinTemplateScreen extends ConsumerWidget {
-  const _BuiltinTemplateScreen({required this.languageCode});
+  const _BuiltinTemplateScreen({
+    required this.kind,
+    required this.languageCode,
+  });
 
+  final TemplateKind kind;
   final String languageCode;
 
   Future<void> _saveCopy(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     try {
       final uri = await FilePicker.saveFile(
-        fileName: 'santaroni-template-$languageCode.html',
-        bytes: Uint8List.fromList(utf8.encode(builtinHtml(languageCode))),
+        fileName: switch (kind) {
+          TemplateKind.assignment => 'santaroni-template-$languageCode.html',
+          TemplateKind.cancellation =>
+            'santaroni-cancellation-$languageCode.html',
+        },
+        bytes: Uint8List.fromList(
+          utf8.encode(builtinHtmlFor(kind, languageCode)),
+        ),
         mimeType: 'text/html',
       );
       if (uri != null && context.mounted) {
@@ -340,11 +417,19 @@ class _BuiltinTemplateScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(builtinTemplateLabel(l10n, languageCode))),
+      appBar: AppBar(
+        title: Text(
+          '${templateKindLabel(l10n, kind)} · '
+          '${builtinTemplateLabel(l10n, languageCode)}',
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(l10n.builtinTemplateDescription),
+          Text(switch (kind) {
+            TemplateKind.assignment => l10n.builtinTemplateDescription,
+            TemplateKind.cancellation => l10n.builtinCancellationDescription,
+          }),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -354,9 +439,10 @@ class _BuiltinTemplateScreen extends ConsumerWidget {
                 onPressed: () => sendTestEmail(
                   context,
                   ref,
-                  subject: defaultSubject(languageCode),
-                  body: builtinBody(languageCode),
+                  subject: defaultSubjectFor(kind, languageCode),
+                  body: builtinBodyFor(kind, languageCode),
                   languageCode: languageCode,
+                  kind: kind,
                 ),
                 icon: const Icon(Icons.send_outlined),
                 label: Text(l10n.sendTestEmail),
@@ -379,9 +465,10 @@ class _BuiltinTemplateScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _SamplePreview(
-            body: builtinBody(languageCode),
-            subject: defaultSubject(languageCode),
+            body: builtinBodyFor(kind, languageCode),
+            subject: defaultSubjectFor(kind, languageCode),
             languageCode: languageCode,
+            kind: kind,
           ),
         ],
       ),
@@ -391,9 +478,15 @@ class _BuiltinTemplateScreen extends ConsumerWidget {
 
 /// The plain-text email a template produces for sample participants.
 class _SamplePreview extends StatelessWidget {
-  const _SamplePreview({required this.body, this.subject, this.languageCode});
+  const _SamplePreview({
+    required this.body,
+    required this.kind,
+    this.subject,
+    this.languageCode,
+  });
 
   final BodyTemplate body;
+  final TemplateKind kind;
   final String? subject;
   final String? languageCode;
 
@@ -401,9 +494,9 @@ class _SamplePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final lang = languageCode ?? appLanguage(context);
     final email = renderEmail(
-      subject: subject ?? defaultSubject(lang),
+      subject: subject ?? defaultSubjectFor(kind, lang),
       body: body,
-      context: EmailContext.sample(lang),
+      context: sampleValues(kind, lang),
     );
     final scheme = Theme.of(context).colorScheme;
     return Container(
@@ -422,7 +515,9 @@ class _SamplePreview extends StatelessWidget {
 
 /// Reference of the variables template files can use.
 class _VariablesHelp extends StatelessWidget {
-  const _VariablesHelp();
+  const _VariablesHelp({required this.kind});
+
+  final TemplateKind kind;
 
   String _describe(AppLocalizations l10n, TemplateVariable v) => switch (v) {
     TemplateVariable.eventName => l10n.varEventName,
@@ -431,11 +526,17 @@ class _VariablesHelp extends StatelessWidget {
     TemplateVariable.eventTime => l10n.varEventTime,
     TemplateVariable.eventPlace => l10n.varEventPlace,
     TemplateVariable.budget => l10n.varBudget,
-    TemplateVariable.giverName => l10n.varGiverName,
-    TemplateVariable.giverEmail => l10n.varGiverEmail,
+    TemplateVariable.giverName ||
+    TemplateVariable.participantName => l10n.varGiverName,
+    TemplateVariable.giverEmail ||
+    TemplateVariable.participantEmail => l10n.varGiverEmail,
     TemplateVariable.recipientName => l10n.varRecipientName,
     TemplateVariable.organizerName => l10n.varOrganizerName,
-    TemplateVariable.hasDetails => l10n.varHasDetails,
+    TemplateVariable.note => l10n.varNote,
+    TemplateVariable.hasDetails => switch (kind) {
+      TemplateKind.assignment => l10n.varHasDetails,
+      TemplateKind.cancellation => l10n.varHasDetailsCancellation,
+    },
     TemplateVariable.hasWishlist => l10n.varHasWishlist,
     TemplateVariable.wishlist => l10n.varWishlist,
   };
@@ -452,7 +553,7 @@ class _VariablesHelp extends StatelessWidget {
         shape: const Border(),
         childrenPadding: const EdgeInsets.only(bottom: 8),
         children: [
-          for (final v in TemplateVariable.values)
+          for (final v in TemplateVariable.forKind(kind))
             ListTile(
               dense: true,
               title: SelectableText(v.snippet, style: _codeStyle),

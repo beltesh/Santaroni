@@ -3,6 +3,12 @@ import 'package:intl/intl.dart';
 import '../languages.dart';
 import '../model/wishlist_entry.dart';
 import '../util/currency.dart';
+import 'template_kind.dart';
+
+/// Values a template is filled in with.
+abstract interface class TemplateValues {
+  Map<String, Object?> toMustache();
+}
 
 /// The values available to an email template, already formatted for the
 /// event's language.
@@ -10,7 +16,7 @@ import '../util/currency.dart';
 /// Optional values are null (never empty strings) when not set: Mustache
 /// only skips a `{{#Section}}` for null, so this keeps empty lines out of
 /// the email.
-class EmailContext {
+class EmailContext implements TemplateValues {
   EmailContext({
     required this.eventName,
     this.eventDate,
@@ -75,6 +81,7 @@ class EmailContext {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
+  @override
   Map<String, Object?> toMustache() {
     final place = _blank(eventPlace);
     final budgetText = _blank(budget);
@@ -186,33 +193,180 @@ class EmailContext {
   }
 }
 
-/// Template variables shown in the editor's "insert variable" list.
-enum TemplateVariable {
-  eventName('EventName'),
-  eventWhen('EventWhen'),
-  eventDate('EventDate'),
-  eventTime('EventTime'),
-  eventPlace('EventPlace'),
-  budget('Budget'),
-  giverName('GiverName'),
-  giverEmail('GiverEmail'),
-  recipientName('RecipientName'),
-  organizerName('OrganizerName'),
-  hasDetails('HasDetails', isSection: true),
-  hasWishlist('HasWishlist', isSection: true),
-  wishlist('Wishlist', isSection: true);
+/// The values available to a cancellation email, already formatted for the
+/// event's language. Optional values are null, as in [EmailContext].
+class CancellationContext implements TemplateValues {
+  CancellationContext({
+    required this.eventName,
+    this.eventDate,
+    this.eventTime,
+    this.eventPlace,
+    required this.participantName,
+    required this.participantEmail,
+    this.organizerName,
+    this.note,
+  });
 
-  const TemplateVariable(this.tag, {this.isSection = false});
+  factory CancellationContext.forEvent({
+    required String languageCode,
+    required String eventName,
+    DateTime? date,
+    String? time,
+    String? place,
+    required String participantName,
+    required String participantEmail,
+    String? organizerName,
+    String? note,
+  }) {
+    final details = EmailContext.forEvent(
+      languageCode: languageCode,
+      eventName: eventName,
+      date: date,
+      time: time,
+      place: place,
+      giverName: participantName,
+      giverEmail: participantEmail,
+      recipientName: '',
+    );
+    return CancellationContext(
+      eventName: eventName,
+      eventDate: details.eventDate,
+      eventTime: details.eventTime,
+      eventPlace: details.eventPlace,
+      participantName: participantName,
+      participantEmail: participantEmail,
+      organizerName: organizerName,
+      note: note,
+    );
+  }
+
+  final String eventName;
+  final String? eventDate;
+  final String? eventTime;
+  final String? eventPlace;
+  final String participantName;
+  final String participantEmail;
+  final String? organizerName;
+
+  /// The organizer's optional message about the cancellation.
+  final String? note;
+
+  String? get eventWhen {
+    final parts = [
+      ?EmailContext._blank(eventDate),
+      ?EmailContext._blank(eventTime),
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  @override
+  Map<String, Object?> toMustache() {
+    final place = EmailContext._blank(eventPlace);
+    return {
+      'EventName': eventName,
+      'EventDate': EmailContext._blank(eventDate),
+      'EventTime': EmailContext._blank(eventTime),
+      'EventWhen': eventWhen,
+      'EventPlace': place,
+      'HasDetails': eventWhen != null || place != null,
+      'ParticipantName': participantName,
+      'ParticipantEmail': participantEmail,
+      'OrganizerName': EmailContext._blank(organizerName),
+      'Note': EmailContext._blank(note?.trim()),
+    };
+  }
+
+  /// Example values for previews; [minimal] leaves every optional field
+  /// empty.
+  static CancellationContext sample(
+    String languageCode, {
+    bool minimal = false,
+  }) {
+    final base = EmailContext.sample(languageCode);
+    final note = switch (languageCode) {
+      'es' =>
+        'Varios no pueden llegar esa semana. ¡Buscaremos otra fecha en enero!',
+      'pt' =>
+        'Muita gente não vai conseguir ir nessa semana. '
+            'Vamos marcar outra data em janeiro!',
+      _ =>
+        "Too many of us are traveling that week. "
+            "We'll find another date in January!",
+    };
+    return CancellationContext.forEvent(
+      languageCode: languageCode,
+      eventName: base.eventName,
+      date: minimal ? null : DateTime(2026, 12, 20),
+      time: minimal ? null : '19:30',
+      place: minimal ? null : base.eventPlace,
+      participantName: base.giverName,
+      participantEmail: base.giverEmail,
+      organizerName: minimal ? null : base.organizerName,
+      note: minimal ? null : note,
+    );
+  }
+}
+
+/// Sample values for previewing or checking a template of [kind].
+TemplateValues sampleValues(
+  TemplateKind kind,
+  String languageCode, {
+  bool minimal = false,
+}) => switch (kind) {
+  TemplateKind.assignment => EmailContext.sample(
+    languageCode,
+    minimal: minimal,
+  ),
+  TemplateKind.cancellation => CancellationContext.sample(
+    languageCode,
+    minimal: minimal,
+  ),
+};
+
+/// Template variables, and which kinds of template can use them.
+enum TemplateVariable {
+  eventName('EventName', _both),
+  eventWhen('EventWhen', _both),
+  eventDate('EventDate', _both),
+  eventTime('EventTime', _both),
+  eventPlace('EventPlace', _both),
+  budget('Budget', _assignment),
+  giverName('GiverName', _assignment),
+  giverEmail('GiverEmail', _assignment),
+  recipientName('RecipientName', _assignment),
+  participantName('ParticipantName', _cancellation),
+  participantEmail('ParticipantEmail', _cancellation),
+  organizerName('OrganizerName', _both),
+  note('Note', _cancellation),
+  hasDetails('HasDetails', _both, isSection: true),
+  hasWishlist('HasWishlist', _assignment, isSection: true),
+  wishlist('Wishlist', _assignment, isSection: true);
+
+  const TemplateVariable(this.tag, this.kinds, {this.isSection = false});
 
   final String tag;
+
+  /// Template kinds where this variable has a value.
+  final Set<TemplateKind> kinds;
 
   /// Booleans and lists, inserted as `{{#Tag}}…{{/Tag}}`.
   final bool isSection;
 
+  /// The variables a [kind] of template can use.
+  static List<TemplateVariable> forKind(TemplateKind kind) => [
+    for (final v in values)
+      if (v.kinds.contains(kind)) v,
+  ];
+
   String get snippet => switch (this) {
     TemplateVariable.wishlist =>
       '{{#Wishlist}}{{Text}}{{#Url}} {{Url}}{{/Url}}{{/Wishlist}}',
+    TemplateVariable.note => '{{#Note}}{{Note}}{{/Note}}',
     _ when isSection => '{{#$tag}}{{/$tag}}',
     _ => '{{$tag}}',
   };
 }
+
+const _both = {TemplateKind.assignment, TemplateKind.cancellation};
+const _assignment = {TemplateKind.assignment};
+const _cancellation = {TemplateKind.cancellation};

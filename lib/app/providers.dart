@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../data/database.dart';
 import '../core/email/mail_transport.dart';
+import '../data/cancellation_service.dart';
+import '../data/database.dart';
 import '../data/email_account_repository.dart';
 import '../data/email_service.dart';
 import '../data/events_repository.dart';
@@ -88,6 +89,15 @@ final sendServiceProvider = Provider<SendService>(
   ),
 );
 
+final cancellationServiceProvider = Provider<CancellationService>(
+  (ref) => CancellationService(
+    events: ref.watch(eventsRepositoryProvider),
+    templates: ref.watch(templatesRepositoryProvider),
+    accounts: ref.watch(emailAccountRepositoryProvider),
+    transport: ref.watch(mailTransportProvider),
+  ),
+);
+
 final emailServiceProvider = Provider<EmailService>(
   (ref) => EmailService(
     ref.watch(emailAccountRepositoryProvider),
@@ -113,4 +123,11 @@ final participantsProvider = StreamProvider.autoDispose
     .family<List<ParticipantWithWishlist>, int>(
       (ref, eventId) =>
           ref.watch(eventsRepositoryProvider).watchParticipants(eventId),
+    );
+
+/// Cancellation emails of a cancelled event, by participant name.
+final noticesProvider = StreamProvider.autoDispose
+    .family<List<NoticeView>, int>(
+      (ref, eventId) =>
+          ref.watch(eventsRepositoryProvider).watchNotices(eventId),
     );
