@@ -54,5 +54,12 @@ app.*.map.json
 .claude/settings.local.json
 # Machine-specific editor settings (absolute paths).
 .vscode/settings.json
+# Android release signing: key details and keystores stay on your machine
+# (and in GitHub secrets for CI).
+/android/key.properties
+*.jks
+*.keystore
+# Packaged builds made locally.
+/dist/
 # Local test files (sample CSVs etc.), not part of the repo.
 /test-data/

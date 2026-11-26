@@ -1,7 +1,25 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing key: from android/key.properties on your machine, or from
+// SANTARONI_KEYSTORE* environment variables in CI (see docs/RELEASING.md).
+// Neither is ever committed. Without a key, release builds fall back to the
+// debug key so `flutter run --release` still works locally; CI refuses to.
+val keyProperties = Properties().apply {
+    val file = rootProject.file("key.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+fun signingValue(property: String, env: String): String? =
+    System.getenv(env)?.takeIf { it.isNotEmpty() } ?: keyProperties.getProperty(property)
+val releaseStoreFile = signingValue("storeFile", "SANTARONI_KEYSTORE")
+val hasReleaseKey = releaseStoreFile != null
+if (!hasReleaseKey && System.getenv("CI") != null) {
+    throw GradleException("No release signing key: can't sign a release in CI.")
 }
 
 android {
@@ -29,11 +47,20 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = signingValue("storePassword", "SANTARONI_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "SANTARONI_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "SANTARONI_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
         }
     }
 }
