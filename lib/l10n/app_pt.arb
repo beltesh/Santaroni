@@ -24,6 +24,13 @@
   "settings": "Configurações",
   "settingsLanguage": "Idioma",
   "languageSystem": "Padrão do sistema",
+  "themeModeSystem": "Sistema",
+  "themeModeDark": "Escuro",
+  "themeModeLight": "Claro",
+  "themeDark": "Tema escuro",
+  "themeLight": "Tema claro",
+  "themeFestiveDark": "Natalino escuro",
+  "themeFestiveLight": "Natalino claro",
 
   "eventFormEditTitle": "Editar amigo secreto",
   "eventName": "Nome do amigo secreto",

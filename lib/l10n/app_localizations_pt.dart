@@ -76,6 +76,27 @@ class AppLocalizationsPt extends AppLocalizations {
   String get languageSystem => 'Padrão do sistema';
 
   @override
+  String get themeModeSystem => 'Sistema';
+
+  @override
+  String get themeModeDark => 'Escuro';
+
+  @override
+  String get themeModeLight => 'Claro';
+
+  @override
+  String get themeDark => 'Tema escuro';
+
+  @override
+  String get themeLight => 'Tema claro';
+
+  @override
+  String get themeFestiveDark => 'Natalino escuro';
+
+  @override
+  String get themeFestiveLight => 'Natalino claro';
+
+  @override
   String get eventFormEditTitle => 'Editar amigo secreto';
 
   @override

@@ -4,8 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../features/home/home_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'providers.dart';
-
-const _seedColor = Color(0xFFC62828); // Festive red.
+import 'themes.dart';
 
 class SantaroniApp extends ConsumerWidget {
   const SantaroniApp({super.key});
@@ -13,6 +12,7 @@ class SantaroniApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider).value;
+    final prefs = ref.watch(themePrefsProvider).value ?? const ThemePrefs();
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -23,15 +23,9 @@ class SantaroniApp extends ConsumerWidget {
         AppLocalizations.delegate,
         ...GlobalMaterialLocalizations.delegates,
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: _seedColor,
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: prefs.light.data,
+      darkTheme: prefs.dark.data,
+      themeMode: prefs.mode.mode,
       home: const HomeScreen(),
     );
   }

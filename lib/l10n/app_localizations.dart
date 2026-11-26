@@ -214,6 +214,48 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get languageSystem;
 
+  /// No description provided for @themeModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeModeSystem;
+
+  /// No description provided for @themeModeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeModeDark;
+
+  /// No description provided for @themeModeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeModeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark theme'**
+  String get themeDark;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light theme'**
+  String get themeLight;
+
+  /// No description provided for @themeFestiveDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Festive Dark'**
+  String get themeFestiveDark;
+
+  /// No description provided for @themeFestiveLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Festive Light'**
+  String get themeFestiveLight;
+
   /// No description provided for @eventFormEditTitle.
   ///
   /// In en, this message translates to:

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:santaroni/app/app.dart';
 import 'package:santaroni/app/providers.dart';
+import 'package:santaroni/app/themes.dart';
 import 'package:santaroni/data/database.dart';
 import 'package:santaroni/data/events_repository.dart';
 
@@ -267,6 +268,65 @@ void main() {
 
     final events = await tester.runAsync(() => db.select(db.events).get());
     expect(events!.single.emailSubject, 'Shh, {{GiverName}}! {{EventName}}');
+  });
+
+  testWidgets('follows the system by default; dark and light keep their own picks', (
+    tester,
+  ) async {
+    useTallScreen(tester);
+    final db = _memoryDb();
+    addTearDown(db.close);
+    await tester.pumpWidget(_app(db));
+    await settle(tester);
+
+    ThemeData theme() => Theme.of(tester.element(find.byType(Scaffold).last));
+    // The test "device" is in light mode, so System shows Festive Light.
+    expect(theme().colorScheme.primary, const Color(0xFFC62828));
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    await settle(tester);
+    expect(theme().brightness, Brightness.dark);
+    expect(theme().colorScheme.primary, AppTheme.festiveDark.data.colorScheme.primary);
+
+    await tester.tap(find.byTooltip('Settings'));
+    await settle(tester);
+    // System mode shows both pickers.
+    expect(find.text('Dark theme'), findsOneWidget);
+    expect(find.text('Light theme'), findsOneWidget);
+
+    // Dark mode: only the dark picker, listing only dark themes.
+    await tester.tap(find.text('Dark'));
+    await settle(tester);
+    expect(find.text('Light theme'), findsNothing);
+    await tester.tap(find.text('Festive Dark'));
+    await settle(tester);
+    expect(find.text('Vesper'), findsOneWidget);
+    expect(find.text('Catppuccin Latte'), findsNothing);
+    expect(find.text('Alucard'), findsNothing);
+    await tester.tap(find.text('Dracula'));
+    await settle(tester);
+    expect(theme().colorScheme.surface, const Color(0xFF282A36));
+
+    // Light mode: only light themes; the dark pick is remembered separately.
+    await tester.tap(find.text('Light'));
+    await settle(tester);
+    expect(theme().brightness, Brightness.light);
+    expect(find.text('Dark theme'), findsNothing);
+    await tester.tap(find.text('Festive Light'));
+    await settle(tester);
+    expect(find.text('Dracula'), findsNothing);
+    await tester.tap(find.text('Alucard'));
+    await settle(tester);
+    expect(theme().colorScheme.surface, const Color(0xFFFFFBEB));
+
+    final saved = await tester.runAsync(
+      () async => (
+        await db.getSetting(ThemePrefs.keyMode),
+        await db.getSetting(ThemePrefs.keyDark),
+        await db.getSetting(ThemePrefs.keyLight),
+      ),
+    );
+    expect(saved, ('light', 'dracula', 'alucard'));
   });
 
   testWidgets('switch the app to Brazilian Portuguese from Settings', (

@@ -8,6 +8,7 @@ import '../data/email_service.dart';
 import '../data/events_repository.dart';
 import '../data/send_service.dart';
 import '../data/templates_repository.dart';
+import 'themes.dart';
 
 /// The single app database. Override it in tests with an in-memory one.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -22,6 +23,18 @@ final localeProvider = StreamProvider<Locale?>((ref) {
   return db
       .watchSetting(SettingKeys.languageCode)
       .map((code) => code == null ? null : Locale(code));
+});
+
+/// Appearance: system/dark/light mode plus the chosen dark and light themes.
+final themePrefsProvider = StreamProvider<ThemePrefs>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db
+      .select(db.settings)
+      .watch()
+      .map(
+        (rows) =>
+            ThemePrefs.fromSettings({for (final r in rows) r.key: r.value}),
+      );
 });
 
 final eventsRepositoryProvider = Provider<EventsRepository>(

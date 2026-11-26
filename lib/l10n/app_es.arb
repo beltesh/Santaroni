@@ -24,6 +24,13 @@
   "settings": "Configuración",
   "settingsLanguage": "Idioma",
   "languageSystem": "Predeterminado del sistema",
+  "themeModeSystem": "Sistema",
+  "themeModeDark": "Oscuro",
+  "themeModeLight": "Claro",
+  "themeDark": "Tema oscuro",
+  "themeLight": "Tema claro",
+  "themeFestiveDark": "Navideño oscuro",
+  "themeFestiveLight": "Navideño claro",
 
   "eventFormEditTitle": "Editar intercambio",
   "eventName": "Nombre del intercambio",

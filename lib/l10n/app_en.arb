@@ -29,6 +29,13 @@
   "settings": "Settings",
   "settingsLanguage": "Language",
   "languageSystem": "System default",
+  "themeModeSystem": "System",
+  "themeModeDark": "Dark",
+  "themeModeLight": "Light",
+  "themeDark": "Dark theme",
+  "themeLight": "Light theme",
+  "themeFestiveDark": "Festive Dark",
+  "themeFestiveLight": "Festive Light",
 
   "eventFormEditTitle": "Edit event",
   "eventName": "Event name",

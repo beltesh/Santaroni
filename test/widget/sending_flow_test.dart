@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:santaroni/app/app.dart';
 import 'package:santaroni/app/providers.dart';
+import 'package:santaroni/app/themes.dart';
 import 'package:santaroni/data/database.dart';
 import 'package:santaroni/data/email_account_repository.dart';
 import 'package:santaroni/data/events_repository.dart';
@@ -80,6 +81,10 @@ void main() {
       // Export moved to the top bar.
       expect(find.byTooltip('Export JSON'), findsOneWidget);
 
+      // The "ready to send" green of whichever theme is showing.
+      Color goGreen() =>
+          StatusColors.go(tester.element(find.byType(Scaffold).last)).background;
+
       // Not ready yet, so the send button is a plain (not green) one.
       Color? sendButtonColor() {
         final button = tester.widget<ButtonStyleButton>(
@@ -91,7 +96,7 @@ void main() {
         return button.style?.backgroundColor?.resolve({});
       }
 
-      expect(sendButtonColor(), isNot(const Color(0xFF2E7D32)));
+      expect(sendButtonColor(), isNot(goGreen()));
 
       // The send screen blocks sending until the account exists.
       await tester.tap(find.text('Send emails'));
@@ -114,7 +119,7 @@ void main() {
       // Back on the event, everything is ready: the button is solid green.
       await tester.pageBack();
       await settle(tester);
-      expect(sendButtonColor(), const Color(0xFF2E7D32));
+      expect(sendButtonColor(), goGreen());
       await tester.tap(find.text('Send emails'));
       await settle(tester);
 
