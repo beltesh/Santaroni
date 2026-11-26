@@ -262,6 +262,11 @@ class AppDatabase extends _$AppDatabase {
     return row?.value;
   }
 
+  /// Every setting, e.g. to start the app with the chosen theme.
+  Future<Map<String, String>> allSettings() async => {
+    for (final row in await select(settings).get()) row.key: row.value,
+  };
+
   Stream<String?> watchSetting(String key) =>
       (select(settings)..where((s) => s.key.equals(key)))
           .watchSingleOrNull()

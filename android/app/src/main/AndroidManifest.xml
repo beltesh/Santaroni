@@ -2,7 +2,7 @@
     <!-- Needed to send emails over SMTP (Flutter only adds this to debug builds). -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="Santaroni"
+        android:label="${appLabel}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

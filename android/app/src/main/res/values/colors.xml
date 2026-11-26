@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Adaptive launcher icon background (from flutter_launcher_icons). -->
     <color name="ic_launcher_background">#7F030E</color>
+    <!-- Shown before Flutter draws its first frame: the background of the
+         default light theme (Festive Light). The app's own theme setting
+         isn't known yet at that point. -->
+    <color name="launch_background">#F6F1EA</color>
 </resources>

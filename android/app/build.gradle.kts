@@ -45,6 +45,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appLabel"] = "Santaroni"
     }
 
     signingConfigs {
@@ -58,9 +59,29 @@ android {
         }
     }
 
+    // Builds signed with the debug key (debug, profile, and release without
+    // the real key) are a separate "Santaroni Dev" app, so they install next
+    // to the published app instead of clashing with its signature. On a
+    // signature clash `flutter run` uninstalls the existing app, which would
+    // delete its data.
+    fun com.android.build.api.dsl.ApplicationBuildType.devApp() {
+        applicationIdSuffix = ".debug"
+        versionNameSuffix = "-dev"
+        manifestPlaceholders["appLabel"] = "Santaroni Dev"
+    }
+
     buildTypes {
+        debug {
+            devApp()
+        }
+        maybeCreate("profile").devApp()
         release {
-            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
+            if (hasReleaseKey) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+                devApp()
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -73,6 +74,11 @@ String initials(String name) {
   final last = parts.length > 1 ? parts.last.characters.first : '';
   return (first + last).toUpperCase();
 }
+
+/// "Santaroni", or "Santaroni Dev" in debug and profile builds, matching
+/// the separate dev app on Android so the two are easy to tell apart.
+String appDisplayName(AppLocalizations l10n) =>
+    kReleaseMode ? l10n.appTitle : '${l10n.appTitle} Dev';
 
 /// The app's current language, as one of [supportedLanguages].
 String appLanguage(BuildContext context) =>

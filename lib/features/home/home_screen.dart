@@ -21,7 +21,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: Text(appDisplayName(l10n)),
         actions: [
           IconButton(
             tooltip: l10n.settings,

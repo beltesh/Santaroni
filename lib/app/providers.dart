@@ -18,6 +18,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+/// Settings read before the first frame (see main.dart), used until the
+/// live providers below load, so the app opens in the chosen theme and
+/// language instead of flashing the defaults first. Empty in tests.
+final initialSettingsProvider = Provider<Map<String, String>>(
+  (ref) => const {},
+);
+
 /// The language the user picked, or null to follow the system language.
 final localeProvider = StreamProvider<Locale?>((ref) {
   final db = ref.watch(databaseProvider);

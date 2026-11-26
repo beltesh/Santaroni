@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../data/database.dart';
+import '../features/common/format.dart';
 import '../features/home/home_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'providers.dart';
@@ -11,11 +13,22 @@ class SantaroniApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider).value;
-    final prefs = ref.watch(themePrefsProvider).value ?? const ThemePrefs();
+    // Until the live settings load, use the ones read at startup.
+    final initial = ref.watch(initialSettingsProvider);
+    final liveLocale = ref.watch(localeProvider);
+    final initialLanguage = initial[SettingKeys.languageCode];
+    final locale = liveLocale.hasValue
+        ? liveLocale.value
+        : initialLanguage == null
+        ? null
+        : Locale(initialLanguage);
+    final prefs =
+        ref.watch(themePrefsProvider).value ??
+        ThemePrefs.fromSettings(initial);
 
     return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      onGenerateTitle: (context) =>
+          appDisplayName(AppLocalizations.of(context)),
       debugShowCheckedModeBanner: false,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
