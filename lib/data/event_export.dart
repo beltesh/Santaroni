@@ -24,8 +24,8 @@ String buildEventJson({
   String? isoDate(DateTime? d) => d == null
       ? null
       : '${d.year.toString().padLeft(4, '0')}-'
-          '${d.month.toString().padLeft(2, '0')}-'
-          '${d.day.toString().padLeft(2, '0')}';
+            '${d.month.toString().padLeft(2, '0')}-'
+            '${d.day.toString().padLeft(2, '0')}';
 
   num? budget() {
     final minor = event.budgetMinor;

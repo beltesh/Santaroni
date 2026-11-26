@@ -30,28 +30,26 @@ class Settings extends Table {
   Set<Column<Object>> get primaryKey => {key};
 }
 
+enum TemplateFormat { text, html }
+
+/// Email body templates imported from files. The built-in default (plain
+/// text, per language) lives in code and is not stored here.
 class EmailTemplates extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// Display name, from the file name without its extension.
   TextColumn get name => text()();
 
-  /// Language of the built-in template ("en", "es"); null for custom ones.
-  TextColumn get languageCode => text().nullable()();
+  /// The imported file's name, shown so the user knows what to update.
+  TextColumn get fileName => text()();
 
-  /// Mustache template for the subject line.
-  TextColumn get subject => text()();
+  TextColumn get format => textEnum<TemplateFormat>()();
 
-  /// Mustache template for the HTML body.
-  TextColumn get htmlBody => text()();
+  /// The file's contents, with `{{Variables}}`. Stored so that moving or
+  /// deleting the original file doesn't break anything.
+  TextColumn get body => text()();
 
-  /// CSS applied to the HTML body. Inlined into elements at send time,
-  /// because many email clients ignore `<style>` blocks.
-  TextColumn get css => text().withDefault(const Constant(''))();
-
-  /// Mustache template for the plain-text alternative. When null, a plain
-  /// version is derived from the HTML.
-  TextColumn get textBody => text().nullable()();
-
-  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get importedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class Events extends Table {
@@ -77,9 +75,17 @@ class Events extends Table {
   /// Language used for this event's emails.
   TextColumn get languageCode => text().withDefault(const Constant('en'))();
 
-  IntColumn get templateId => integer()
-      .nullable()
-      .references(EmailTemplates, #id, onDelete: KeyAction.setNull)();
+  /// Imported template for the email body, or null for the built-in plain
+  /// text one in [languageCode].
+  IntColumn get templateId => integer().nullable().references(
+    EmailTemplates,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Subject line, may contain `{{Variables}}`. Null means the default
+  /// subject for [languageCode].
+  TextColumn get emailSubject => text().nullable()();
 
   TextColumn get status =>
       textEnum<EventStatus>().withDefault(Constant(EventStatus.draft.name))();
@@ -130,8 +136,8 @@ class Assignments extends Table {
 
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
-        {eventId, recipientId},
-      ];
+    {eventId, recipientId},
+  ];
 }
 
 @DriftDatabase(
@@ -151,31 +157,43 @@ class AppDatabase extends _$AppDatabase {
   /// The app's real database, stored in the per-user application support
   /// folder (%APPDATA% on Windows, app-private storage on Android).
   AppDatabase.defaults()
-      : super(
-          driftDatabase(
-            name: 'santaroni',
-            native: DriftNativeOptions(
-              databaseDirectory: getApplicationSupportDirectory,
-            ),
+    : super(
+        driftDatabase(
+          name: 'santaroni',
+          native: DriftNativeOptions(
+            databaseDirectory: getApplicationSupportDirectory,
           ),
-        );
+        ),
+      );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        beforeOpen: (details) async {
-          // SQLite leaves foreign keys off unless asked.
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // v1 had an editor-style template table that was never used
+        // for sending; replace it with imported-file templates.
+        await customStatement('UPDATE events SET template_id = NULL');
+        await m.deleteTable('email_templates');
+        await m.createTable(emailTemplates);
+        await m.addColumn(events, events.emailSubject);
+      }
+    },
+    beforeOpen: (details) async {
+      // SQLite leaves foreign keys off unless asked.
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   // --- Settings ------------------------------------------------------------
 
   Future<String?> getSetting(String key) async {
-    final row = await (select(settings)..where((s) => s.key.equals(key)))
-        .getSingleOrNull();
+    final row = await (select(
+      settings,
+    )..where((s) => s.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 

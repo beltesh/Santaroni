@@ -626,6 +626,834 @@ abstract class AppLocalizations {
   /// **'Hide all'**
   String get hideAll;
 
+  /// No description provided for @emailTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Email templates'**
+  String get emailTemplates;
+
+  /// No description provided for @emailTemplatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your own text or HTML email design'**
+  String get emailTemplatesSubtitle;
+
+  /// No description provided for @emailTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Email template'**
+  String get emailTemplate;
+
+  /// No description provided for @emailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Email subject'**
+  String get emailSubject;
+
+  /// No description provided for @emailSubjectTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {tag} anywhere in the subject to insert the event name.'**
+  String emailSubjectTooltip(String tag);
+
+  /// No description provided for @emailSubjectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a subject'**
+  String get emailSubjectRequired;
+
+  /// No description provided for @templatesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Every email is built from a template. Import your own .html or .txt file with variables like the ones listed below; Santaroni fills them in for each participant.'**
+  String get templatesIntro;
+
+  /// No description provided for @templatesBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get templatesBuiltIn;
+
+  /// No description provided for @templatesImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get templatesImported;
+
+  /// No description provided for @templatesImportedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No imported templates yet.'**
+  String get templatesImportedEmpty;
+
+  /// No description provided for @builtinTemplateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Default ({language})'**
+  String builtinTemplateName(String language);
+
+  /// No description provided for @builtinTemplateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HTML email, used unless an event picks another template'**
+  String get builtinTemplateSubtitle;
+
+  /// No description provided for @builtinTemplateDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A festive HTML email with all the event details and the recipient\'s wishlist. A plain-text version is sent along with it, for email apps that can\'t show HTML and to help keep it out of spam. Save a copy to use it as the starting point for your own design.'**
+  String get builtinTemplateDescription;
+
+  /// No description provided for @saveTemplateCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a copy to customize'**
+  String get saveTemplateCopy;
+
+  /// No description provided for @templateCopySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved. Edit it, then import it here.'**
+  String get templateCopySaved;
+
+  /// No description provided for @importTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Import template'**
+  String get importTemplate;
+
+  /// No description provided for @formatHtml.
+  ///
+  /// In en, this message translates to:
+  /// **'HTML'**
+  String get formatHtml;
+
+  /// No description provided for @formatText.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain text'**
+  String get formatText;
+
+  /// No description provided for @templateImportedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'imported {date}'**
+  String templateImportedOn(String date);
+
+  /// No description provided for @templateImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported “{name}”'**
+  String templateImported(String name);
+
+  /// No description provided for @templateImportedWithProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported “{name}”, but it needs fixing before it can be used.'**
+  String templateImportedWithProblem(String name);
+
+  /// No description provided for @templateReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Template updated'**
+  String get templateReplaced;
+
+  /// No description provided for @templateUnsupportedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a .html or .txt file.'**
+  String get templateUnsupportedFile;
+
+  /// No description provided for @replaceFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace with a new file'**
+  String get replaceFile;
+
+  /// No description provided for @templateNeedsFixing.
+  ///
+  /// In en, this message translates to:
+  /// **'needs fixing'**
+  String get templateNeedsFixing;
+
+  /// No description provided for @templateNeedsFixingLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This template has a problem, so emails can\'t be sent until it\'s fixed. See Settings › Email templates.'**
+  String get templateNeedsFixingLong;
+
+  /// No description provided for @templateCannotSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be used to send emails until fixed'**
+  String get templateCannotSend;
+
+  /// No description provided for @templateUnknownVariable.
+  ///
+  /// In en, this message translates to:
+  /// **'{tag} on line {line} isn\'t a variable Santaroni knows. Check the spelling against the list of variables.'**
+  String templateUnknownVariable(String tag, int line);
+
+  /// No description provided for @templateSyntaxError.
+  ///
+  /// In en, this message translates to:
+  /// **'The template couldn\'t be read: {message}'**
+  String templateSyntaxError(String message);
+
+  /// No description provided for @templateSyntaxErrorAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line}: {message}'**
+  String templateSyntaxErrorAt(int line, String message);
+
+  /// No description provided for @previewSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample'**
+  String get previewSample;
+
+  /// No description provided for @previewPlainVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain-text version'**
+  String get previewPlainVersion;
+
+  /// No description provided for @previewHtmlNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the text sent alongside the HTML. To see the HTML itself, send yourself a test email.'**
+  String get previewHtmlNote;
+
+  /// No description provided for @templateVariablesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Variables you can use'**
+  String get templateVariablesTitle;
+
+  /// No description provided for @templateVariablesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write these in your template file'**
+  String get templateVariablesSubtitle;
+
+  /// No description provided for @varEventName.
+  ///
+  /// In en, this message translates to:
+  /// **'Event name'**
+  String get varEventName;
+
+  /// No description provided for @varEventWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Date and time together, whichever are set'**
+  String get varEventWhen;
+
+  /// No description provided for @varEventDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get varEventDate;
+
+  /// No description provided for @varEventTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get varEventTime;
+
+  /// No description provided for @varEventPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get varEventPlace;
+
+  /// No description provided for @varBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget, with currency symbol'**
+  String get varBudget;
+
+  /// No description provided for @varGiverName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name of the person this email is for'**
+  String get varGiverName;
+
+  /// No description provided for @varGiverEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Their email address'**
+  String get varGiverEmail;
+
+  /// No description provided for @varRecipientName.
+  ///
+  /// In en, this message translates to:
+  /// **'Who they\'re giving a gift to'**
+  String get varRecipientName;
+
+  /// No description provided for @varOrganizerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sender name'**
+  String get varOrganizerName;
+
+  /// No description provided for @varHasDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Section shown when there\'s a date, place or budget'**
+  String get varHasDetails;
+
+  /// No description provided for @varHasWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Section shown when the recipient has a wishlist'**
+  String get varHasWishlist;
+
+  /// No description provided for @varWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats for each wishlist item, with Text and Url'**
+  String get varWishlist;
+
+  /// No description provided for @deleteTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this template?'**
+  String get deleteTemplateTitle;
+
+  /// No description provided for @deleteTemplateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Events using it will go back to the default template.'**
+  String get deleteTemplateBody;
+
+  /// No description provided for @emailAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Email account'**
+  String get emailAccount;
+
+  /// No description provided for @emailAccountNotSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up yet'**
+  String get emailAccountNotSetUp;
+
+  /// No description provided for @emailProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Email provider'**
+  String get emailProvider;
+
+  /// No description provided for @providerGmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail'**
+  String get providerGmail;
+
+  /// No description provided for @providerCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Other (SMTP server)'**
+  String get providerCustom;
+
+  /// No description provided for @gmailHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail needs an app password'**
+  String get gmailHelpTitle;
+
+  /// No description provided for @gmailHelpStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Turn on 2-Step Verification for your Google account.'**
+  String get gmailHelpStep1;
+
+  /// No description provided for @gmailHelpStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Create an app password (name it “Santaroni”) at:'**
+  String get gmailHelpStep2;
+
+  /// No description provided for @gmailHelpStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Paste the 16-letter code below. Your normal Gmail password won\'t work.'**
+  String get gmailHelpStep3;
+
+  /// No description provided for @sentFolderWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking part yourself?'**
+  String get sentFolderWarningTitle;
+
+  /// No description provided for @sentFolderWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail keeps a copy of every email in your Sent folder, so you\'d see everyone\'s assignments there. Use a separate free Gmail account just for the exchange.'**
+  String get sentFolderWarningBody;
+
+  /// No description provided for @senderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get senderName;
+
+  /// No description provided for @senderNameHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown as the sender, and in templates as the organizer name'**
+  String get senderNameHelp;
+
+  /// No description provided for @senderAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get senderAddress;
+
+  /// No description provided for @appPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'App password'**
+  String get appPassword;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @passwordSavedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. Leave empty to keep it.'**
+  String get passwordSavedHint;
+
+  /// No description provided for @passwordStorageNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored securely in this device\'s keychain, never in the app\'s database or backups.'**
+  String get passwordStorageNote;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the password'**
+  String get passwordRequired;
+
+  /// No description provided for @serverSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get serverSettings;
+
+  /// No description provided for @smtpHost.
+  ///
+  /// In en, this message translates to:
+  /// **'SMTP server'**
+  String get smtpHost;
+
+  /// No description provided for @smtpHostRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the server name'**
+  String get smtpHostRequired;
+
+  /// No description provided for @smtpPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get smtpPort;
+
+  /// No description provided for @smtpPortInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid port'**
+  String get smtpPortInvalid;
+
+  /// No description provided for @smtpSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get smtpSecurity;
+
+  /// No description provided for @securityStartTls.
+  ///
+  /// In en, this message translates to:
+  /// **'STARTTLS (port 587)'**
+  String get securityStartTls;
+
+  /// No description provided for @securitySsl.
+  ///
+  /// In en, this message translates to:
+  /// **'SSL/TLS (port 465)'**
+  String get securitySsl;
+
+  /// No description provided for @accountSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Email account saved'**
+  String get accountSaved;
+
+  /// No description provided for @forgetAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove account'**
+  String get forgetAccount;
+
+  /// No description provided for @forgetAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this email account?'**
+  String get forgetAccountTitle;
+
+  /// No description provided for @forgetAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its settings and saved password will be deleted from this device. Your events are not affected.'**
+  String get forgetAccountBody;
+
+  /// No description provided for @sendTestEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send me a test email'**
+  String get sendTestEmail;
+
+  /// No description provided for @sendingTestEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending test email…'**
+  String get sendingTestEmail;
+
+  /// No description provided for @testEmailPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'[Test] '**
+  String get testEmailPrefix;
+
+  /// No description provided for @testEmailSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Test email sent'**
+  String get testEmailSentTitle;
+
+  /// No description provided for @testEmailSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the inbox of {address}. It can take a minute to arrive.'**
+  String testEmailSentBody(String address);
+
+  /// No description provided for @testEmailFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the email'**
+  String get testEmailFailedTitle;
+
+  /// No description provided for @accountNotReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email account needed'**
+  String get accountNotReadyTitle;
+
+  /// No description provided for @accountNotReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the account to send from first: your email address and its password.'**
+  String get accountNotReadyBody;
+
+  /// No description provided for @setUpAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up account'**
+  String get setUpAccount;
+
+  /// No description provided for @sendErrorAuthGmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail didn\'t accept the password. Make sure it\'s an app password (not your normal Gmail password) and that 2-Step Verification is on.'**
+  String get sendErrorAuthGmail;
+
+  /// No description provided for @sendErrorAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'The server didn\'t accept the email address or password.'**
+  String get sendErrorAuth;
+
+  /// No description provided for @sendErrorConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the email server. Check your internet connection, and the server name and port if you entered them.'**
+  String get sendErrorConnection;
+
+  /// No description provided for @sendErrorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The server refused the email: {detail}'**
+  String sendErrorRejected(String detail);
+
+  /// No description provided for @sendErrorOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while sending: {detail}'**
+  String sendErrorOther(String detail);
+
+  /// No description provided for @accountReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to send'**
+  String get accountReadyTitle;
+
+  /// No description provided for @accountSetUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up email'**
+  String get accountSetUpTitle;
+
+  /// No description provided for @accountSetUpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed to send assignments'**
+  String get accountSetUpSubtitle;
+
+  /// No description provided for @accountNeededBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the email account you\'ll send these assignments from.'**
+  String get accountNeededBanner;
+
+  /// No description provided for @templatesShortcutDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Using the default design'**
+  String get templatesShortcutDefault;
+
+  /// No description provided for @templatesShortcutImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 imported} other{{count} imported}}'**
+  String templatesShortcutImported(int count);
+
+  /// No description provided for @sendEmails.
+  ///
+  /// In en, this message translates to:
+  /// **'Send emails'**
+  String get sendEmails;
+
+  /// No description provided for @emailStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Email status'**
+  String get emailStatus;
+
+  /// No description provided for @sendPartlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some emails haven\'t gone out'**
+  String get sendPartlyTitle;
+
+  /// No description provided for @sendPartlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Email status to send the rest or retry the ones that failed.'**
+  String get sendPartlyBody;
+
+  /// No description provided for @allEmailsSent.
+  ///
+  /// In en, this message translates to:
+  /// **'All emails sent'**
+  String get allEmailsSent;
+
+  /// No description provided for @sentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone has their assignment. If someone lost their email, you can resend it from Email status.'**
+  String get sentBody;
+
+  /// No description provided for @sendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send assignments'**
+  String get sendTitle;
+
+  /// No description provided for @checkAccountReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Email account is ready'**
+  String get checkAccountReady;
+
+  /// No description provided for @checkAccountMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Email account isn\'t set up'**
+  String get checkAccountMissing;
+
+  /// No description provided for @checkTemplateReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject and template are ready'**
+  String get checkTemplateReady;
+
+  /// No description provided for @checkTemplateProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'The subject or template needs fixing'**
+  String get checkTemplateProblem;
+
+  /// No description provided for @checkDrawReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Names drawn and verified'**
+  String get checkDrawReady;
+
+  /// No description provided for @sentOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{sent} of {total} sent'**
+  String sentOfTotal(int sent, int total);
+
+  /// No description provided for @failedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 email failed} other{{count} emails failed}}'**
+  String failedCount(int count);
+
+  /// No description provided for @sendingInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending… you can leave this screen; it keeps going.'**
+  String get sendingInProgress;
+
+  /// No description provided for @sendAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Send 1 email} other{Send {count} emails}}'**
+  String sendAllButton(int count);
+
+  /// No description provided for @sendRemainingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Send the remaining email} other{Send the remaining {count}}}'**
+  String sendRemainingButton(int count);
+
+  /// No description provided for @retryFailedButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Retry the failed email} other{Retry {count} failed}}'**
+  String retryFailedButton(int count);
+
+  /// No description provided for @sendMePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Send me a preview'**
+  String get sendMePreview;
+
+  /// No description provided for @sendPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The preview uses this event\'s details with made-up names, so it doesn\'t reveal anyone\'s assignment. Only who receives each email is listed below.'**
+  String get sendPrivacyNote;
+
+  /// No description provided for @sendConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Send 1 email?} other{Send {count} emails?}}'**
+  String sendConfirmTitle(int count);
+
+  /// No description provided for @sendConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each participant gets their assignment from {from}. Once emails go out, people can no longer be added or removed.'**
+  String sendConfirmBody(String from);
+
+  /// No description provided for @sendNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get sendNow;
+
+  /// No description provided for @stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stop;
+
+  /// No description provided for @stopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopping…'**
+  String get stopping;
+
+  /// No description provided for @sendBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the items marked in the checklist first.'**
+  String get sendBlocked;
+
+  /// No description provided for @sendFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 email sent} other{{count} emails sent}}'**
+  String sendFinished(int count);
+
+  /// No description provided for @sendFinishedWithFailures.
+  ///
+  /// In en, this message translates to:
+  /// **'{sent} sent, {failed} failed. You can retry the failed ones.'**
+  String sendFinishedWithFailures(int sent, int failed);
+
+  /// No description provided for @sendStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped after {count} sent. The rest are waiting.'**
+  String sendStopped(int count);
+
+  /// No description provided for @resend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get resend;
+
+  /// No description provided for @resendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend to {name}?'**
+  String resendTitle(String name);
+
+  /// No description provided for @resendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll get their assignment again at {email}. You won\'t see who it is.'**
+  String resendBody(String email);
+
+  /// No description provided for @statusSendingNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get statusSendingNow;
+
+  /// No description provided for @statusEmailPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent yet'**
+  String get statusEmailPending;
+
+  /// No description provided for @statusEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get statusEmailSent;
+
+  /// No description provided for @statusEmailSentAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {when}'**
+  String statusEmailSentAt(String when);
+
+  /// No description provided for @statusEmailFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String statusEmailFailed(String error);
+
   /// No description provided for @exportJson.
   ///
   /// In en, this message translates to:

@@ -18,17 +18,21 @@ class EventDraft {
     this.budgetMinor,
     this.currency = 'USD',
     this.languageCode = 'en',
+    this.templateId,
+    this.emailSubject,
   });
 
   factory EventDraft.fromEvent(Event e) => EventDraft(
-        name: e.name,
-        date: e.eventDate,
-        time: e.eventTime,
-        place: e.place,
-        budgetMinor: e.budgetMinor,
-        currency: e.currency,
-        languageCode: e.languageCode,
-      );
+    name: e.name,
+    date: e.eventDate,
+    time: e.eventTime,
+    place: e.place,
+    budgetMinor: e.budgetMinor,
+    currency: e.currency,
+    languageCode: e.languageCode,
+    templateId: e.templateId,
+    emailSubject: e.emailSubject,
+  );
 
   final String name;
   final DateTime? date;
@@ -40,21 +44,34 @@ class EventDraft {
   final String currency;
   final String languageCode;
 
+  /// Imported email template, or null for the built-in one in [languageCode].
+  final int? templateId;
+
+  /// Subject with `{{Variables}}`, or null for the default in [languageCode].
+  final String? emailSubject;
+
   EventsCompanion toCompanion() {
     final trimmedName = name.trim();
     final trimmedPlace = place?.trim();
     return EventsCompanion(
       name: Value(trimmedName),
       slug: Value(slugify(trimmedName)),
-      eventDate: Value(date == null
-          ? null
-          : DateTime(date!.year, date!.month, date!.day)),
+      eventDate: Value(
+        date == null ? null : DateTime(date!.year, date!.month, date!.day),
+      ),
       eventTime: Value(time),
       place: Value(
-          trimmedPlace == null || trimmedPlace.isEmpty ? null : trimmedPlace),
+        trimmedPlace == null || trimmedPlace.isEmpty ? null : trimmedPlace,
+      ),
       budgetMinor: Value(budgetMinor),
       currency: Value(currency),
       languageCode: Value(languageCode),
+      templateId: Value(templateId),
+      emailSubject: Value(
+        emailSubject == null || emailSubject!.trim().isEmpty
+            ? null
+            : emailSubject!.trim(),
+      ),
     );
   }
 }
@@ -122,29 +139,34 @@ class EventsRepository {
 
   Stream<List<EventSummary>> watchEventSummaries() {
     final count = _db.participants.id.count();
-    final query = _db.select(_db.events).join([
-      leftOuterJoin(_db.participants,
-          _db.participants.eventId.equalsExp(_db.events.id)),
-    ])
-      ..addColumns([count])
-      ..groupBy([_db.events.id])
-      ..orderBy([OrderingTerm.desc(_db.events.createdAt)]);
-    return query.watch().map((rows) => [
-          for (final row in rows)
-            EventSummary(row.readTable(_db.events), row.read(count) ?? 0),
-        ]);
+    final query =
+        _db.select(_db.events).join([
+            leftOuterJoin(
+              _db.participants,
+              _db.participants.eventId.equalsExp(_db.events.id),
+            ),
+          ])
+          ..addColumns([count])
+          ..groupBy([_db.events.id])
+          ..orderBy([OrderingTerm.desc(_db.events.createdAt)]);
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          EventSummary(row.readTable(_db.events), row.read(count) ?? 0),
+      ],
+    );
   }
 
-  Stream<Event?> watchEvent(int id) =>
-      (_db.select(_db.events)..where((e) => e.id.equals(id)))
-          .watchSingleOrNull();
+  Stream<Event?> watchEvent(int id) => (_db.select(
+    _db.events,
+  )..where((e) => e.id.equals(id))).watchSingleOrNull();
 
   Future<int> createEvent(EventDraft draft) =>
       _db.into(_db.events).insert(draft.toCompanion());
 
-  Future<void> updateEvent(int id, EventDraft draft) =>
-      (_db.update(_db.events)..where((e) => e.id.equals(id)))
-          .write(draft.toCompanion());
+  Future<void> updateEvent(int id, EventDraft draft) => (_db.update(
+    _db.events,
+  )..where((e) => e.id.equals(id))).write(draft.toCompanion());
 
   Future<void> deleteEvent(int id) =>
       (_db.delete(_db.events)..where((e) => e.id.equals(id))).go();
@@ -154,22 +176,23 @@ class EventsRepository {
   Stream<List<ParticipantWithWishlist>> watchParticipants(int eventId) {
     final p = _db.participants;
     final w = _db.wishlistItems;
-    final query = _db.select(p).join([
-      leftOuterJoin(w, w.participantId.equalsExp(p.id)),
-    ])
-      ..where(p.eventId.equals(eventId))
-      ..orderBy([
-        OrderingTerm.asc(p.name.collate(Collate.noCase)),
-        OrderingTerm.asc(p.id),
-        OrderingTerm.asc(w.position),
-      ]);
+    final query =
+        _db.select(p).join([leftOuterJoin(w, w.participantId.equalsExp(p.id))])
+          ..where(p.eventId.equals(eventId))
+          ..orderBy([
+            OrderingTerm.asc(p.name.collate(Collate.noCase)),
+            OrderingTerm.asc(p.id),
+            OrderingTerm.asc(w.position),
+          ]);
 
     return query.watch().map((rows) {
       final byId = <int, ParticipantWithWishlist>{};
       for (final row in rows) {
         final participant = row.readTable(p);
         final entry = byId.putIfAbsent(
-            participant.id, () => ParticipantWithWishlist(participant, []));
+          participant.id,
+          () => ParticipantWithWishlist(participant, []),
+        );
         final item = row.readTableOrNull(w);
         if (item != null) entry.wishlist.add(item);
       }
@@ -177,7 +200,10 @@ class EventsRepository {
     });
   }
 
-  Future<Set<String>> emailsInEvent(int eventId, {int? exceptParticipant}) async {
+  Future<Set<String>> emailsInEvent(
+    int eventId, {
+    int? exceptParticipant,
+  }) async {
     final query = _db.select(_db.participants)
       ..where((p) => p.eventId.equals(eventId));
     final rows = await query.get();
@@ -195,10 +221,7 @@ class EventsRepository {
       });
 
   /// Adds many participants at once (CSV import). All or nothing.
-  Future<void> importParticipants(
-    int eventId,
-    List<ParticipantDraft> drafts,
-  ) =>
+  Future<void> importParticipants(int eventId, List<ParticipantDraft> drafts) =>
       _db.transaction(() async {
         await _beforeRosterChange(eventId);
         final taken = await emailsInEvent(eventId);
@@ -212,45 +235,50 @@ class EventsRepository {
 
   Future<void> updateParticipant(int id, ParticipantDraft draft) =>
       _db.transaction(() async {
-        final existing = await (_db.select(_db.participants)
-              ..where((p) => p.id.equals(id)))
-            .getSingle();
-        await _ensureUniqueEmail(existing.eventId, draft.email,
-            exceptParticipant: id);
+        final existing = await (_db.select(
+          _db.participants,
+        )..where((p) => p.id.equals(id))).getSingle();
+        await _ensureUniqueEmail(
+          existing.eventId,
+          draft.email,
+          exceptParticipant: id,
+        );
 
         // Changing exclusion groups can make current assignments invalid.
         if (existing.groupTag != draft.normalizedGroup) {
           await _beforeRosterChange(existing.eventId);
         }
 
-        await (_db.update(_db.participants)..where((p) => p.id.equals(id)))
-            .write(ParticipantsCompanion(
-          name: Value(draft.name.trim()),
-          email: Value(draft.email.trim()),
-          groupTag: Value(draft.normalizedGroup),
-        ));
-        await (_db.delete(_db.wishlistItems)
-              ..where((w) => w.participantId.equals(id)))
-            .go();
+        await (_db.update(
+          _db.participants,
+        )..where((p) => p.id.equals(id))).write(
+          ParticipantsCompanion(
+            name: Value(draft.name.trim()),
+            email: Value(draft.email.trim()),
+            groupTag: Value(draft.normalizedGroup),
+          ),
+        );
+        await (_db.delete(
+          _db.wishlistItems,
+        )..where((w) => w.participantId.equals(id))).go();
         await _insertWishlist(id, draft.wishlist);
       });
 
   Future<void> deleteParticipant(int id) => _db.transaction(() async {
-        final existing = await (_db.select(_db.participants)
-              ..where((p) => p.id.equals(id)))
-            .getSingle();
-        await _beforeRosterChange(existing.eventId);
-        await (_db.delete(_db.participants)..where((p) => p.id.equals(id)))
-            .go();
-      });
+    final existing = await (_db.select(
+      _db.participants,
+    )..where((p) => p.id.equals(id))).getSingle();
+    await _beforeRosterChange(existing.eventId);
+    await (_db.delete(_db.participants)..where((p) => p.id.equals(id))).go();
+  });
 
   /// Removes every participant (and their wishlists) from [eventId].
   Future<void> deleteAllParticipants(int eventId) => _db.transaction(() async {
-        await _beforeRosterChange(eventId);
-        await (_db.delete(_db.participants)
-              ..where((p) => p.eventId.equals(eventId)))
-            .go();
-      });
+    await _beforeRosterChange(eventId);
+    await (_db.delete(
+      _db.participants,
+    )..where((p) => p.eventId.equals(eventId))).go();
+  });
 
   // --- Draw ----------------------------------------------------------------
 
@@ -267,23 +295,26 @@ class EventsRepository {
           throw const EventLockedException();
         }
 
-        final people = await (_db.select(_db.participants)
-              ..where((p) => p.eventId.equals(eventId)))
-            .get();
+        final people = await (_db.select(
+          _db.participants,
+        )..where((p) => p.eventId.equals(eventId))).get();
         final ids = [for (final p in people) p.id];
         final groups = {for (final p in people) p.id: p.groupTag};
 
-        final draw =
-            SecretSantaCycle.generate(ids, groups: groups, random: random);
+        final draw = SecretSantaCycle.generate(
+          ids,
+          groups: groups,
+          random: random,
+        );
         // Belt and braces: never store a draw that fails verification.
         final issues = SecretSantaCycle.validate(ids, draw, groups: groups);
         if (issues.isNotEmpty) {
           throw StateError('Generated draw failed verification: $issues');
         }
 
-        await (_db.delete(_db.assignments)
-              ..where((a) => a.eventId.equals(eventId)))
-            .go();
+        await (_db.delete(
+          _db.assignments,
+        )..where((a) => a.eventId.equals(eventId))).go();
         await _db.batch((b) {
           for (final MapEntry(key: giver, value: recipient) in draw.entries) {
             b.insert(
@@ -306,27 +337,69 @@ class EventsRepository {
     final a = _db.assignments;
     final giver = _db.alias(_db.participants, 'giver');
     final recipient = _db.alias(_db.participants, 'recipient');
-    final query = _db.select(a).join([
-      innerJoin(giver, giver.id.equalsExp(a.giverId)),
-      innerJoin(recipient, recipient.id.equalsExp(a.recipientId)),
-    ])
-      ..where(a.eventId.equals(eventId))
-      ..orderBy([
-        OrderingTerm.asc(giver.name.collate(Collate.noCase)),
-        OrderingTerm.asc(giver.id),
-      ]);
-    return query.watch().map((rows) => [
-          for (final row in rows)
-            AssignmentView(
-              row.readTable(a),
-              row.readTable(giver),
-              row.readTable(recipient),
-            ),
-        ]);
+    final query =
+        _db.select(a).join([
+            innerJoin(giver, giver.id.equalsExp(a.giverId)),
+            innerJoin(recipient, recipient.id.equalsExp(a.recipientId)),
+          ])
+          ..where(a.eventId.equals(eventId))
+          ..orderBy([
+            OrderingTerm.asc(giver.name.collate(Collate.noCase)),
+            OrderingTerm.asc(giver.id),
+          ]);
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          AssignmentView(
+            row.readTable(a),
+            row.readTable(giver),
+            row.readTable(recipient),
+          ),
+      ],
+    );
   }
 
   Future<List<AssignmentView>> assignments(int eventId) =>
       watchAssignments(eventId).first;
+
+  // --- Sending -------------------------------------------------------------
+
+  /// Records a delivered email. The first one locks the roster (status
+  /// "sending"); once everyone has theirs, the event is "sent".
+  Future<void> markSent(int eventId, int giverId, {DateTime? at}) =>
+      _db.transaction(() async {
+        await (_db.update(_db.assignments)..where(
+              (a) => a.eventId.equals(eventId) & a.giverId.equals(giverId),
+            ))
+            .write(
+              AssignmentsCompanion(
+                sendStatus: const Value(SendStatus.sent),
+                sentAt: Value(at ?? DateTime.now()),
+                lastError: const Value(null),
+              ),
+            );
+        await _refreshSendStatus(eventId);
+      });
+
+  Future<void> markFailed(int eventId, int giverId, String error) =>
+      (_db.update(_db.assignments)..where(
+            (a) => a.eventId.equals(eventId) & a.giverId.equals(giverId),
+          ))
+          .write(
+            AssignmentsCompanion(
+              sendStatus: const Value(SendStatus.failed),
+              lastError: Value(error),
+            ),
+          );
+
+  Future<void> _refreshSendStatus(int eventId) async {
+    final rows = await (_db.select(
+      _db.assignments,
+    )..where((a) => a.eventId.equals(eventId))).get();
+    if (rows.isEmpty) return;
+    final allSent = rows.every((r) => r.sendStatus == SendStatus.sent);
+    await _setStatus(eventId, allSent ? EventStatus.sent : EventStatus.sending);
+  }
 
   // ---------------------------------------------------------------------------
 
@@ -334,8 +407,9 @@ class EventsRepository {
       (_db.select(_db.events)..where((e) => e.id.equals(eventId))).getSingle();
 
   Future<void> _setStatus(int eventId, EventStatus status) =>
-      (_db.update(_db.events)..where((e) => e.id.equals(eventId)))
-          .write(EventsCompanion(status: Value(status)));
+      (_db.update(_db.events)..where((e) => e.id.equals(eventId))).write(
+        EventsCompanion(status: Value(status)),
+      );
 
   /// Before adding/removing people: drafts are free to change; generated
   /// (but unsent) assignments are discarded; once sending has started the
@@ -346,9 +420,9 @@ class EventsRepository {
       case EventStatus.draft:
         return;
       case EventStatus.generated:
-        await (_db.delete(_db.assignments)
-              ..where((a) => a.eventId.equals(eventId)))
-            .go();
+        await (_db.delete(
+          _db.assignments,
+        )..where((a) => a.eventId.equals(eventId))).go();
         await _setStatus(eventId, EventStatus.draft);
       case EventStatus.sending:
       case EventStatus.sent:
@@ -361,15 +435,19 @@ class EventsRepository {
     String email, {
     int? exceptParticipant,
   }) async {
-    final taken =
-        await emailsInEvent(eventId, exceptParticipant: exceptParticipant);
+    final taken = await emailsInEvent(
+      eventId,
+      exceptParticipant: exceptParticipant,
+    );
     if (taken.contains(normalizeEmail(email))) {
       throw DuplicateEmailException(email);
     }
   }
 
   Future<int> _insertParticipant(int eventId, ParticipantDraft draft) async {
-    final id = await _db.into(_db.participants).insert(
+    final id = await _db
+        .into(_db.participants)
+        .insert(
           ParticipantsCompanion.insert(
             eventId: eventId,
             name: draft.name.trim(),

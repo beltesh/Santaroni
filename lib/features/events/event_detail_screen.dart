@@ -3,14 +3,19 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/providers.dart';
 import '../../core/assignment/secret_santa_cycle.dart';
+import '../../core/email/builtin_templates.dart';
 import '../../data/database.dart';
 import '../../data/events_repository.dart';
+import '../../data/templates_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../common/account_status_widgets.dart';
 import '../common/dialogs.dart';
 import '../common/format.dart';
 import '../draw/draw_card.dart';
+import '../draw/export_action.dart';
 import '../participants/csv_import_screen.dart';
 import '../participants/participant_form_screen.dart';
+import '../templates/templates_screen.dart';
 import 'event_form_screen.dart';
 
 class EventDetailScreen extends ConsumerWidget {
@@ -43,15 +48,16 @@ class EventDetailScreen extends ConsumerWidget {
     final groups = {
       for (final p in all)
         if (p.participant.groupTag != null) p.participant.groupTag!,
-    }.toList()
-      ..sort();
-    Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => ParticipantFormScreen(
-        eventId: eventId,
-        existing: existing,
-        knownGroups: groups,
+    }.toList()..sort();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ParticipantFormScreen(
+          eventId: eventId,
+          existing: existing,
+          knownGroups: groups,
+        ),
       ),
-    ));
+    );
   }
 
   Future<void> _removeAll(
@@ -80,9 +86,9 @@ class EventDetailScreen extends ConsumerWidget {
 
   Future<void> _import(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    final count = await Navigator.of(context).push<int>(MaterialPageRoute(
-      builder: (_) => CsvImportScreen(eventId: eventId),
-    ));
+    final count = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => CsvImportScreen(eventId: eventId)),
+    );
     if (count != null && context.mounted) {
       showSnack(context, l10n.csvImported(count));
     }
@@ -109,11 +115,18 @@ class EventDetailScreen extends ConsumerWidget {
         title: Text(event.name),
         actions: [
           IconButton(
+            tooltip: l10n.exportJson,
+            icon: const Icon(Icons.save_alt),
+            onPressed: () => exportEvent(context, ref, event),
+          ),
+          IconButton(
             tooltip: l10n.edit,
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => EventFormScreen(event: event),
-            )),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => EventFormScreen(event: event),
+              ),
+            ),
           ),
           PopupMenuButton<void>(
             // Use the screen's context, not the menu's: the menu is gone by
@@ -135,6 +148,7 @@ class EventDetailScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           _EventInfoCard(event: event),
+          if (event.status != EventStatus.sent) const AccountNeededBanner(),
           if (locked) ...[
             const SizedBox(height: 12),
             _Banner(icon: Icons.lock_outline, text: l10n.eventLockedBanner),
@@ -159,8 +173,10 @@ class EventDetailScreen extends ConsumerWidget {
               if (!locked && list.isNotEmpty)
                 IconButton(
                   tooltip: l10n.removeAllParticipants,
-                  icon: Icon(Icons.delete_sweep_outlined,
-                      color: Theme.of(context).colorScheme.error),
+                  icon: Icon(
+                    Icons.delete_sweep_outlined,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   onPressed: () => _removeAll(context, ref, event, list.length),
                 ),
             ],
@@ -187,7 +203,9 @@ class EventDetailScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _Banner(
                   icon: Icons.info_outline,
-                  text: l10n.needMoreParticipants(SecretSantaCycle.minParticipants),
+                  text: l10n.needMoreParticipants(
+                    SecretSantaCycle.minParticipants,
+                  ),
                 ),
               ),
             Card(
@@ -218,25 +236,46 @@ class EventDetailScreen extends ConsumerWidget {
   }
 }
 
-class _EventInfoCard extends StatelessWidget {
+class _EventInfoCard extends ConsumerWidget {
   const _EventInfoCard({required this.event});
 
   final Event event;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final when = formatEventWhen(context, event);
     final budget = formatEventBudget(context, event);
 
-    final rows = <(IconData, String)>[
-      if (when != null) (Icons.event_outlined, when),
-      if (event.place != null) (Icons.place_outlined, event.place!),
-      if (budget != null) (Icons.savings_outlined, l10n.budgetUpTo(budget)),
+    final templates = ref.watch(templatesProvider).value ?? const [];
+    final custom = templates.where((t) => t.id == event.templateId).firstOrNull;
+    final templateHasProblem = custom != null && custom.problem != null;
+    final subject = (event.emailSubject ?? defaultSubject(event.languageCode))
+        // Per-person variables stay as written; the event name is known.
+        .replaceAll(RegExp(r'\{\{\s*EventName\s*\}\}'), event.name);
+
+    final rows = <(IconData, String, bool)>[
+      if (when != null) (Icons.event_outlined, when, false),
+      if (event.place != null) (Icons.place_outlined, event.place!, false),
+      if (budget != null)
+        (Icons.savings_outlined, l10n.budgetUpTo(budget), false),
       (
         Icons.translate,
-        event.languageCode == 'es' ? l10n.languageSpanish : l10n.languageEnglish,
+        event.languageCode == 'es'
+            ? l10n.languageSpanish
+            : l10n.languageEnglish,
+        false,
+      ),
+      (Icons.subject, subject, false),
+      (
+        Icons.mail_outline,
+        custom == null
+            ? builtinTemplateLabel(l10n, event.languageCode)
+            : templateHasProblem
+            ? '${custom.name} — ${l10n.templateNeedsFixing}'
+            : custom.name,
+        templateHasProblem,
       ),
     ];
 
@@ -258,18 +297,34 @@ class _EventInfoCard extends StatelessWidget {
             if (when == null && event.place == null && budget == null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Text(l10n.eventDetailsEmpty,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                child: Text(
+                  l10n.eventDetailsEmpty,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-            for (final (icon, text) in rows)
+            for (final (icon, text, isProblem) in rows)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Icon(icon, size: 20, color: theme.colorScheme.primary),
+                    Icon(
+                      isProblem ? Icons.error_outline : icon,
+                      size: 20,
+                      color: isProblem
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(text)),
+                    Expanded(
+                      child: Text(
+                        text,
+                        style: isProblem
+                            ? TextStyle(color: theme.colorScheme.error)
+                            : null,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -313,8 +368,11 @@ class _ParticipantTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.card_giftcard,
-                      size: 18, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.card_giftcard,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 2),
                   Text('${entry.wishlist.length}'),
                 ],
@@ -340,8 +398,11 @@ class _EmptyParticipants extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(Icons.groups_outlined,
-                size: 48, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.groups_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: 12),
             Text(l10n.participantsEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -389,8 +450,10 @@ class _Banner extends StatelessWidget {
           Icon(icon, color: scheme.onSecondaryContainer),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(text,
-                style: TextStyle(color: scheme.onSecondaryContainer)),
+            child: Text(
+              text,
+              style: TextStyle(color: scheme.onSecondaryContainer),
+            ),
           ),
         ],
       ),

@@ -316,6 +316,539 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hideAll => 'Hide all';
 
   @override
+  String get emailTemplates => 'Email templates';
+
+  @override
+  String get emailTemplatesSubtitle => 'Use your own text or HTML email design';
+
+  @override
+  String get emailTemplate => 'Email template';
+
+  @override
+  String get emailSubject => 'Email subject';
+
+  @override
+  String emailSubjectTooltip(String tag) {
+    return 'Use $tag anywhere in the subject to insert the event name.';
+  }
+
+  @override
+  String get emailSubjectRequired => 'Please enter a subject';
+
+  @override
+  String get templatesIntro =>
+      'Every email is built from a template. Import your own .html or .txt file with variables like the ones listed below; Santaroni fills them in for each participant.';
+
+  @override
+  String get templatesBuiltIn => 'Built-in';
+
+  @override
+  String get templatesImported => 'Imported';
+
+  @override
+  String get templatesImportedEmpty => 'No imported templates yet.';
+
+  @override
+  String builtinTemplateName(String language) {
+    return 'Default ($language)';
+  }
+
+  @override
+  String get builtinTemplateSubtitle =>
+      'HTML email, used unless an event picks another template';
+
+  @override
+  String get builtinTemplateDescription =>
+      'A festive HTML email with all the event details and the recipient\'s wishlist. A plain-text version is sent along with it, for email apps that can\'t show HTML and to help keep it out of spam. Save a copy to use it as the starting point for your own design.';
+
+  @override
+  String get saveTemplateCopy => 'Save a copy to customize';
+
+  @override
+  String get templateCopySaved =>
+      'Template saved. Edit it, then import it here.';
+
+  @override
+  String get importTemplate => 'Import template';
+
+  @override
+  String get formatHtml => 'HTML';
+
+  @override
+  String get formatText => 'Plain text';
+
+  @override
+  String templateImportedOn(String date) {
+    return 'imported $date';
+  }
+
+  @override
+  String templateImported(String name) {
+    return 'Imported “$name”';
+  }
+
+  @override
+  String templateImportedWithProblem(String name) {
+    return 'Imported “$name”, but it needs fixing before it can be used.';
+  }
+
+  @override
+  String get templateReplaced => 'Template updated';
+
+  @override
+  String get templateUnsupportedFile => 'Choose a .html or .txt file.';
+
+  @override
+  String get replaceFile => 'Replace with a new file';
+
+  @override
+  String get templateNeedsFixing => 'needs fixing';
+
+  @override
+  String get templateNeedsFixingLong =>
+      'This template has a problem, so emails can\'t be sent until it\'s fixed. See Settings › Email templates.';
+
+  @override
+  String get templateCannotSend => 'Can\'t be used to send emails until fixed';
+
+  @override
+  String templateUnknownVariable(String tag, int line) {
+    return '$tag on line $line isn\'t a variable Santaroni knows. Check the spelling against the list of variables.';
+  }
+
+  @override
+  String templateSyntaxError(String message) {
+    return 'The template couldn\'t be read: $message';
+  }
+
+  @override
+  String templateSyntaxErrorAt(int line, String message) {
+    return 'Line $line: $message';
+  }
+
+  @override
+  String get previewSample => 'Sample';
+
+  @override
+  String get previewPlainVersion => 'Plain-text version';
+
+  @override
+  String get previewHtmlNote =>
+      'This is the text sent alongside the HTML. To see the HTML itself, send yourself a test email.';
+
+  @override
+  String get templateVariablesTitle => 'Variables you can use';
+
+  @override
+  String get templateVariablesSubtitle => 'Write these in your template file';
+
+  @override
+  String get varEventName => 'Event name';
+
+  @override
+  String get varEventWhen => 'Date and time together, whichever are set';
+
+  @override
+  String get varEventDate => 'Date';
+
+  @override
+  String get varEventTime => 'Time';
+
+  @override
+  String get varEventPlace => 'Place';
+
+  @override
+  String get varBudget => 'Budget, with currency symbol';
+
+  @override
+  String get varGiverName => 'Name of the person this email is for';
+
+  @override
+  String get varGiverEmail => 'Their email address';
+
+  @override
+  String get varRecipientName => 'Who they\'re giving a gift to';
+
+  @override
+  String get varOrganizerName => 'Your sender name';
+
+  @override
+  String get varHasDetails =>
+      'Section shown when there\'s a date, place or budget';
+
+  @override
+  String get varHasWishlist =>
+      'Section shown when the recipient has a wishlist';
+
+  @override
+  String get varWishlist => 'Repeats for each wishlist item, with Text and Url';
+
+  @override
+  String get deleteTemplateTitle => 'Delete this template?';
+
+  @override
+  String get deleteTemplateBody =>
+      'Events using it will go back to the default template.';
+
+  @override
+  String get emailAccount => 'Email account';
+
+  @override
+  String get emailAccountNotSetUp => 'Not set up yet';
+
+  @override
+  String get emailProvider => 'Email provider';
+
+  @override
+  String get providerGmail => 'Gmail';
+
+  @override
+  String get providerCustom => 'Other (SMTP server)';
+
+  @override
+  String get gmailHelpTitle => 'Gmail needs an app password';
+
+  @override
+  String get gmailHelpStep1 =>
+      '1. Turn on 2-Step Verification for your Google account.';
+
+  @override
+  String get gmailHelpStep2 =>
+      '2. Create an app password (name it “Santaroni”) at:';
+
+  @override
+  String get gmailHelpStep3 =>
+      '3. Paste the 16-letter code below. Your normal Gmail password won\'t work.';
+
+  @override
+  String get sentFolderWarningTitle => 'Taking part yourself?';
+
+  @override
+  String get sentFolderWarningBody =>
+      'Gmail keeps a copy of every email in your Sent folder, so you\'d see everyone\'s assignments there. Use a separate free Gmail account just for the exchange.';
+
+  @override
+  String get senderName => 'Your name';
+
+  @override
+  String get senderNameHelp =>
+      'Shown as the sender, and in templates as the organizer name';
+
+  @override
+  String get senderAddress => 'Email address';
+
+  @override
+  String get appPassword => 'App password';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get passwordSavedHint => 'Saved. Leave empty to keep it.';
+
+  @override
+  String get passwordStorageNote =>
+      'Stored securely in this device\'s keychain, never in the app\'s database or backups.';
+
+  @override
+  String get passwordRequired => 'Please enter the password';
+
+  @override
+  String get serverSettings => 'Server';
+
+  @override
+  String get smtpHost => 'SMTP server';
+
+  @override
+  String get smtpHostRequired => 'Please enter the server name';
+
+  @override
+  String get smtpPort => 'Port';
+
+  @override
+  String get smtpPortInvalid => 'Invalid port';
+
+  @override
+  String get smtpSecurity => 'Security';
+
+  @override
+  String get securityStartTls => 'STARTTLS (port 587)';
+
+  @override
+  String get securitySsl => 'SSL/TLS (port 465)';
+
+  @override
+  String get accountSaved => 'Email account saved';
+
+  @override
+  String get forgetAccount => 'Remove account';
+
+  @override
+  String get forgetAccountTitle => 'Remove this email account?';
+
+  @override
+  String get forgetAccountBody =>
+      'Its settings and saved password will be deleted from this device. Your events are not affected.';
+
+  @override
+  String get sendTestEmail => 'Send me a test email';
+
+  @override
+  String get sendingTestEmail => 'Sending test email…';
+
+  @override
+  String get testEmailPrefix => '[Test] ';
+
+  @override
+  String get testEmailSentTitle => 'Test email sent';
+
+  @override
+  String testEmailSentBody(String address) {
+    return 'Check the inbox of $address. It can take a minute to arrive.';
+  }
+
+  @override
+  String get testEmailFailedTitle => 'Couldn\'t send the email';
+
+  @override
+  String get accountNotReadyTitle => 'Email account needed';
+
+  @override
+  String get accountNotReadyBody =>
+      'Set up the account to send from first: your email address and its password.';
+
+  @override
+  String get setUpAccount => 'Set up account';
+
+  @override
+  String get sendErrorAuthGmail =>
+      'Gmail didn\'t accept the password. Make sure it\'s an app password (not your normal Gmail password) and that 2-Step Verification is on.';
+
+  @override
+  String get sendErrorAuth =>
+      'The server didn\'t accept the email address or password.';
+
+  @override
+  String get sendErrorConnection =>
+      'Couldn\'t reach the email server. Check your internet connection, and the server name and port if you entered them.';
+
+  @override
+  String sendErrorRejected(String detail) {
+    return 'The server refused the email: $detail';
+  }
+
+  @override
+  String sendErrorOther(String detail) {
+    return 'Something went wrong while sending: $detail';
+  }
+
+  @override
+  String get accountReadyTitle => 'Ready to send';
+
+  @override
+  String get accountSetUpTitle => 'Set up email';
+
+  @override
+  String get accountSetUpSubtitle => 'Needed to send assignments';
+
+  @override
+  String get accountNeededBanner =>
+      'Set up the email account you\'ll send these assignments from.';
+
+  @override
+  String get templatesShortcutDefault => 'Using the default design';
+
+  @override
+  String templatesShortcutImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count imported',
+      one: '1 imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sendEmails => 'Send emails';
+
+  @override
+  String get emailStatus => 'Email status';
+
+  @override
+  String get sendPartlyTitle => 'Some emails haven\'t gone out';
+
+  @override
+  String get sendPartlyBody =>
+      'Open Email status to send the rest or retry the ones that failed.';
+
+  @override
+  String get allEmailsSent => 'All emails sent';
+
+  @override
+  String get sentBody =>
+      'Everyone has their assignment. If someone lost their email, you can resend it from Email status.';
+
+  @override
+  String get sendTitle => 'Send assignments';
+
+  @override
+  String get checkAccountReady => 'Email account is ready';
+
+  @override
+  String get checkAccountMissing => 'Email account isn\'t set up';
+
+  @override
+  String get checkTemplateReady => 'Subject and template are ready';
+
+  @override
+  String get checkTemplateProblem => 'The subject or template needs fixing';
+
+  @override
+  String get checkDrawReady => 'Names drawn and verified';
+
+  @override
+  String sentOfTotal(int sent, int total) {
+    return '$sent of $total sent';
+  }
+
+  @override
+  String failedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count emails failed',
+      one: '1 email failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sendingInProgress =>
+      'Sending… you can leave this screen; it keeps going.';
+
+  @override
+  String sendAllButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Send $count emails',
+      one: 'Send 1 email',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sendRemainingButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Send the remaining $count',
+      one: 'Send the remaining email',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String retryFailedButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retry $count failed',
+      one: 'Retry the failed email',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sendMePreview => 'Send me a preview';
+
+  @override
+  String get sendPrivacyNote =>
+      'The preview uses this event\'s details with made-up names, so it doesn\'t reveal anyone\'s assignment. Only who receives each email is listed below.';
+
+  @override
+  String sendConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Send $count emails?',
+      one: 'Send 1 email?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sendConfirmBody(String from) {
+    return 'Each participant gets their assignment from $from. Once emails go out, people can no longer be added or removed.';
+  }
+
+  @override
+  String get sendNow => 'Send';
+
+  @override
+  String get stop => 'Stop';
+
+  @override
+  String get stopping => 'Stopping…';
+
+  @override
+  String get sendBlocked => 'Fix the items marked in the checklist first.';
+
+  @override
+  String sendFinished(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count emails sent',
+      one: '1 email sent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sendFinishedWithFailures(int sent, int failed) {
+    return '$sent sent, $failed failed. You can retry the failed ones.';
+  }
+
+  @override
+  String sendStopped(int count) {
+    return 'Stopped after $count sent. The rest are waiting.';
+  }
+
+  @override
+  String get resend => 'Resend';
+
+  @override
+  String resendTitle(String name) {
+    return 'Resend to $name?';
+  }
+
+  @override
+  String resendBody(String email) {
+    return 'They\'ll get their assignment again at $email. You won\'t see who it is.';
+  }
+
+  @override
+  String get statusSendingNow => 'Sending…';
+
+  @override
+  String get statusEmailPending => 'Not sent yet';
+
+  @override
+  String get statusEmailSent => 'Sent';
+
+  @override
+  String statusEmailSentAt(String when) {
+    return 'Sent $when';
+  }
+
+  @override
+  String statusEmailFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
   String get exportJson => 'Export JSON';
 
   @override

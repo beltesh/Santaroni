@@ -7,6 +7,10 @@ import '../../data/database.dart';
 import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/format.dart';
+import '../../core/email/builtin_templates.dart';
+import '../../core/email/email_renderer.dart';
+import '../../data/templates_repository.dart';
+import '../templates/templates_screen.dart';
 import 'event_detail_screen.dart';
 
 /// Creates a new event, or edits [event] when given.
@@ -28,6 +32,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   TimeOfDay? _time;
   late String _currency;
   String? _language;
+  int? _templateId;
+  final _subject = TextEditingController();
+  bool _subjectInitialized = false;
   bool _saving = false;
 
   bool get _isEditing => widget.event != null;
@@ -40,18 +47,37 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _place = TextEditingController(text: e?.place);
     _currency = e?.currency ?? defaultCurrency;
     _budget = TextEditingController(
-      text: e?.budgetMinor == null ? '' : _budgetText(e!.budgetMinor!, _currency),
+      text: e?.budgetMinor == null
+          ? ''
+          : _budgetText(e!.budgetMinor!, _currency),
     );
     _date = e?.eventDate;
     _time = parseTime(e?.eventTime);
     _language = e?.languageCode;
+    _templateId = e?.templateId;
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // New events default to the app's current language.
-    _language ??= Localizations.localeOf(context).languageCode == 'es' ? 'es' : 'en';
+    _language ??= Localizations.localeOf(context).languageCode == 'es'
+        ? 'es'
+        : 'en';
+    if (!_subjectInitialized) {
+      _subjectInitialized = true;
+      _subject.text = widget.event?.emailSubject ?? defaultSubject(_language!);
+    }
+  }
+
+  /// Switching language also switches the subject, unless it was edited.
+  void _setLanguage(String language) {
+    setState(() {
+      if (_subject.text.trim() == defaultSubject(_language!)) {
+        _subject.text = defaultSubject(language);
+      }
+      _language = language;
+    });
   }
 
   @override
@@ -59,6 +85,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _name.dispose();
     _place.dispose();
     _budget.dispose();
+    _subject.dispose();
     super.dispose();
   }
 
@@ -108,6 +135,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       budgetMinor: parseBudget(_budget.text, _currency),
       currency: _currency,
       languageCode: _language!,
+      templateId: _templateId,
+      // Store null for the default so it follows later language changes.
+      emailSubject: _subject.text.trim() == defaultSubject(_language!)
+          ? null
+          : _subject.text,
     );
     final repo = ref.read(eventsRepositoryProvider);
     final navigator = Navigator.of(context);
@@ -117,9 +149,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       navigator.pop();
     } else {
       final id = await repo.createEvent(draft);
-      navigator.pushReplacement(MaterialPageRoute<void>(
-        builder: (_) => EventDetailScreen(eventId: id),
-      ));
+      navigator.pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => EventDetailScreen(eventId: id)),
+      );
     }
   }
 
@@ -145,8 +177,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 labelText: l10n.eventName,
                 hintText: l10n.eventNameHint,
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.eventNameRequired : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? l10n.eventNameRequired
+                  : null,
             ),
             const SizedBox(height: 16),
             Row(
@@ -190,14 +223,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   flex: 3,
                   child: TextFormField(
                     controller: _budget,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: l10n.eventBudget,
                       hintText: l10n.optional,
                       prefixText: '${currencySymbol(_currency)} ',
                     ),
-                    validator: (v) => (v != null &&
+                    validator: (v) =>
+                        (v != null &&
                             v.trim().isNotEmpty &&
                             parseBudget(v, _currency) == null)
                         ? l10n.invalidAmount
@@ -226,7 +261,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            Text(l10n.emailLanguage, style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.emailLanguage,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
               segments: [
@@ -234,7 +272,34 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ButtonSegment(value: 'es', label: Text(l10n.languageSpanish)),
               ],
               selected: {_language!},
-              onSelectionChanged: (s) => setState(() => _language = s.first),
+              onSelectionChanged: (s) => _setLanguage(s.first),
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _subject,
+              decoration: InputDecoration(
+                labelText: l10n.emailSubject,
+                prefixIcon: const Icon(Icons.subject),
+                suffixIcon: Tooltip(
+                  message: l10n.emailSubjectTooltip('{{EventName}}'),
+                  triggerMode: TooltipTriggerMode.tap,
+                  showDuration: const Duration(seconds: 6),
+                  child: const Icon(Icons.help_outline),
+                ),
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return l10n.emailSubjectRequired;
+                }
+                final problem = checkSubject(v);
+                return problem == null ? null : describeProblem(l10n, problem);
+              },
+            ),
+            const SizedBox(height: 16),
+            _TemplatePicker(
+              languageCode: _language!,
+              value: _templateId,
+              onChanged: (id) => setState(() => _templateId = id),
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
@@ -245,6 +310,65 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Chooses the email template: the built-in one for the event's language
+/// (null) or an imported one. Templates with problems can be picked (they
+/// may get fixed later) but are flagged, and sending refuses them.
+class _TemplatePicker extends ConsumerWidget {
+  const _TemplatePicker({
+    required this.languageCode,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String languageCode;
+  final int? value;
+  final ValueChanged<int?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final templates = ref.watch(templatesProvider);
+    final custom = templates.value ?? const <EmailTemplate>[];
+    // A deleted template falls back to the built-in one. Tell the form too,
+    // so it doesn't save an id that no longer exists.
+    final selected = custom.any((t) => t.id == value) ? value : null;
+    if (templates.hasValue && value != null && selected == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => onChanged(null));
+    }
+    final selectedHasProblem = custom
+        .where((t) => t.id == selected)
+        .any((t) => t.problem != null);
+
+    return DropdownButtonFormField<int?>(
+      key: ValueKey(Object.hash(selected, custom.length, languageCode)),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: l10n.emailTemplate,
+        prefixIcon: const Icon(Icons.mail_outline),
+        errorText: selectedHasProblem ? l10n.templateNeedsFixingLong : null,
+        errorMaxLines: 3,
+      ),
+      items: [
+        DropdownMenuItem(
+          value: null,
+          child: Text(builtinTemplateLabel(l10n, languageCode)),
+        ),
+        for (final t in custom)
+          DropdownMenuItem(
+            value: t.id,
+            child: Text(
+              t.problem == null
+                  ? t.name
+                  : '${t.name} — ${l10n.templateNeedsFixing}',
+            ),
+          ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

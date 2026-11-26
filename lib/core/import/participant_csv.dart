@@ -94,8 +94,7 @@ abstract final class ParticipantCsv {
   static ParticipantCsvResult parseBytes(
     Uint8List bytes, {
     Set<String> existingEmails = const {},
-  }) =>
-      parse(decodeText(bytes), existingEmails: existingEmails);
+  }) => parse(decodeText(bytes), existingEmails: existingEmails);
 
   static String decodeText(Uint8List bytes) {
     try {
@@ -125,9 +124,10 @@ abstract final class ParticipantCsv {
     }
 
     final columns = _mapHeader(rows.first);
-    final missing = {CsvColumn.name, CsvColumn.email}
-        .where((c) => !columns.containsKey(c))
-        .toSet();
+    final missing = {
+      CsvColumn.name,
+      CsvColumn.email,
+    }.where((c) => !columns.containsKey(c)).toSet();
     if (missing.isNotEmpty) {
       return ParticipantCsvResult(
         participants: const [],
@@ -159,29 +159,34 @@ abstract final class ParticipantCsv {
         continue;
       }
       if (email.isEmpty) {
-        errors.add(CsvRowError(rowNumber, CsvRowProblem.missingEmail,
-            value: name));
+        errors.add(
+          CsvRowError(rowNumber, CsvRowProblem.missingEmail, value: name),
+        );
         continue;
       }
       if (!isValidEmail(email)) {
-        errors.add(CsvRowError(rowNumber, CsvRowProblem.invalidEmail,
-            value: email));
+        errors.add(
+          CsvRowError(rowNumber, CsvRowProblem.invalidEmail, value: email),
+        );
         continue;
       }
       if (!seen.add(normalizeEmail(email))) {
-        errors.add(CsvRowError(rowNumber, CsvRowProblem.duplicateEmail,
-            value: email));
+        errors.add(
+          CsvRowError(rowNumber, CsvRowProblem.duplicateEmail, value: email),
+        );
         continue;
       }
 
       final group = cell(row, CsvColumn.group);
-      participants.add(CsvParticipant(
-        rowNumber: rowNumber,
-        name: name,
-        email: email,
-        group: group.isEmpty ? null : group,
-        wishlist: parseWishlist(cell(row, CsvColumn.wishlist)),
-      ));
+      participants.add(
+        CsvParticipant(
+          rowNumber: rowNumber,
+          name: name,
+          email: email,
+          group: group.isEmpty ? null : group,
+          wishlist: parseWishlist(cell(row, CsvColumn.wishlist)),
+        ),
+      );
     }
 
     return ParticipantCsvResult(
@@ -205,8 +210,10 @@ abstract final class ParticipantCsv {
   }
 
   static String _headerKey(String header) {
-    const accents = {'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', //
-        'ü': 'u', 'ñ': 'n'};
+    const accents = {
+      'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', //
+      'ü': 'u', 'ñ': 'n',
+    };
     final lower = header.trim().toLowerCase();
     final buffer = StringBuffer();
     for (final char in lower.split('')) {

@@ -16,21 +16,27 @@ void main() {
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     repo = EventsRepository(db);
-    eventId = await repo.createEvent(const EventDraft(name: '  Navidad Año 2026 '));
+    eventId = await repo.createEvent(
+      const EventDraft(name: '  Navidad Año 2026 '),
+    );
   });
   tearDown(() => db.close());
 
-  ParticipantDraft person(String name, {String? group, List<WishlistEntry>? wishes}) =>
-      ParticipantDraft(
-        name: name,
-        email: '${name.toLowerCase()}@example.com',
-        groupTag: group,
-        wishlist: wishes ?? const [],
-      );
+  ParticipantDraft person(
+    String name, {
+    String? group,
+    List<WishlistEntry>? wishes,
+  }) => ParticipantDraft(
+    name: name,
+    email: '${name.toLowerCase()}@example.com',
+    groupTag: group,
+    wishlist: wishes ?? const [],
+  );
 
   Future<void> setStatus(EventStatus status) =>
-      (db.update(db.events)..where((e) => e.id.equals(eventId)))
-          .write(EventsCompanion(status: Value(status)));
+      (db.update(db.events)..where((e) => e.id.equals(eventId))).write(
+        EventsCompanion(status: Value(status)),
+      );
 
   test('createEvent trims the name and derives the slug', () async {
     final event = await repo.watchEvent(eventId).first;
@@ -42,11 +48,14 @@ void main() {
     await repo.addParticipant(eventId, person('beto'));
     await repo.addParticipant(
       eventId,
-      person('Ana', wishes: const [
-        WishlistEntry('Book', 'https://example.com/book'),
-        WishlistEntry('  '), // Blank items are dropped.
-        WishlistEntry('Socks'),
-      ]),
+      person(
+        'Ana',
+        wishes: const [
+          WishlistEntry('Book', 'https://example.com/book'),
+          WishlistEntry('  '), // Blank items are dropped.
+          WishlistEntry('Socks'),
+        ],
+      ),
     );
 
     final list = await repo.watchParticipants(eventId).first;
@@ -64,17 +73,23 @@ void main() {
   test('rejects duplicate emails, ignoring case and spaces', () async {
     await repo.addParticipant(eventId, person('Ana'));
     expect(
-      () => repo.addParticipant(eventId,
-          const ParticipantDraft(name: 'Other', email: ' ANA@example.com ')),
+      () => repo.addParticipant(
+        eventId,
+        const ParticipantDraft(name: 'Other', email: ' ANA@example.com '),
+      ),
       throwsA(isA<DuplicateEmailException>()),
     );
   });
 
   test('updating keeps your own email and replaces the wishlist', () async {
     final id = await repo.addParticipant(
-        eventId, person('Ana', wishes: const [WishlistEntry('Old')]));
+      eventId,
+      person('Ana', wishes: const [WishlistEntry('Old')]),
+    );
     await repo.updateParticipant(
-        id, person('Ana', wishes: const [WishlistEntry('New')]));
+      id,
+      person('Ana', wishes: const [WishlistEntry('New')]),
+    );
     final list = await repo.watchParticipants(eventId).first;
     expect(list.single.wishlist.single.itemText, 'New');
   });
@@ -91,11 +106,19 @@ void main() {
 
   test('changing the roster after a draw discards the draw', () async {
     final ids = [
-      for (final n in ['Ana', 'Beto', 'Carla']) await repo.addParticipant(eventId, person(n)),
+      for (final n in ['Ana', 'Beto', 'Carla'])
+        await repo.addParticipant(eventId, person(n)),
     ];
     for (var i = 0; i < 3; i++) {
-      await db.into(db.assignments).insert(AssignmentsCompanion.insert(
-          eventId: eventId, giverId: ids[i], recipientId: ids[(i + 1) % 3]));
+      await db
+          .into(db.assignments)
+          .insert(
+            AssignmentsCompanion.insert(
+              eventId: eventId,
+              giverId: ids[i],
+              recipientId: ids[(i + 1) % 3],
+            ),
+          );
     }
     await setStatus(EventStatus.generated);
 
@@ -114,20 +137,29 @@ void main() {
 
     await setStatus(EventStatus.generated);
     await repo.updateParticipant(id, person('Ana', group: 'X'));
-    expect((await repo.watchEvent(eventId).first)!.status, EventStatus.generated);
+    expect(
+      (await repo.watchEvent(eventId).first)!.status,
+      EventStatus.generated,
+    );
   });
 
   test('the roster is locked once sending starts', () async {
     final id = await repo.addParticipant(eventId, person('Ana'));
     await setStatus(EventStatus.sending);
 
-    expect(() => repo.addParticipant(eventId, person('Beto')),
-        throwsA(isA<EventLockedException>()));
-    expect(() => repo.deleteParticipant(id),
-        throwsA(isA<EventLockedException>()));
+    expect(
+      () => repo.addParticipant(eventId, person('Beto')),
+      throwsA(isA<EventLockedException>()),
+    );
+    expect(
+      () => repo.deleteParticipant(id),
+      throwsA(isA<EventLockedException>()),
+    );
     // Fixing a typo in an email is still allowed.
     await repo.updateParticipant(
-        id, const ParticipantDraft(name: 'Ana', email: 'ana2@example.com'));
+      id,
+      const ParticipantDraft(name: 'Ana', email: 'ana2@example.com'),
+    );
   });
 
   test('deleting an event removes its participants', () async {
@@ -139,7 +171,9 @@ void main() {
   test('deleteAllParticipants clears the roster and cancels a draw', () async {
     for (final n in ['Ana', 'Beto', 'Carla']) {
       await repo.addParticipant(
-          eventId, person(n, wishes: const [WishlistEntry('Gift')]));
+        eventId,
+        person(n, wishes: const [WishlistEntry('Gift')]),
+      );
     }
     await repo.drawNames(eventId);
 
@@ -151,15 +185,20 @@ void main() {
     expect((await repo.watchEvent(eventId).first)!.status, EventStatus.draft);
 
     await setStatus(EventStatus.sent);
-    expect(() => repo.deleteAllParticipants(eventId),
-        throwsA(isA<EventLockedException>()));
+    expect(
+      () => repo.deleteAllParticipants(eventId),
+      throwsA(isA<EventLockedException>()),
+    );
   });
 
   group('drawNames', () {
-    Future<List<int>> addPeople(List<String> names, {Map<String, String>? groups}) async => [
-          for (final n in names)
-            await repo.addParticipant(eventId, person(n, group: groups?[n])),
-        ];
+    Future<List<int>> addPeople(
+      List<String> names, {
+      Map<String, String>? groups,
+    }) async => [
+      for (final n in names)
+        await repo.addParticipant(eventId, person(n, group: groups?[n])),
+    ];
 
     test('stores a verified single cycle and marks the event drawn', () async {
       final ids = await addPeople(['Ana', 'Beto', 'Carla', 'Dani', 'Eva']);
@@ -168,8 +207,14 @@ void main() {
       final views = await repo.assignments(eventId);
       final map = {for (final v in views) v.giver.id: v.recipient.id};
       expect(SecretSantaCycle.isValid(ids, map), isTrue);
-      expect((await repo.watchEvent(eventId).first)!.status, EventStatus.generated);
-      expect(views.every((v) => v.assignment.sendStatus == SendStatus.pending), isTrue);
+      expect(
+        (await repo.watchEvent(eventId).first)!.status,
+        EventStatus.generated,
+      );
+      expect(
+        views.every((v) => v.assignment.sendStatus == SendStatus.pending),
+        isTrue,
+      );
     });
 
     test('lists assignments by giver name, not loop order', () async {
@@ -187,8 +232,10 @@ void main() {
     });
 
     test('respects exclusion groups', () async {
-      await addPeople(['Ana', 'Beto', 'Carla', 'Dani'],
-          groups: {'Ana': 'couple', 'Beto': 'couple'});
+      await addPeople(
+        ['Ana', 'Beto', 'Carla', 'Dani'],
+        groups: {'Ana': 'couple', 'Beto': 'couple'},
+      );
       for (var seed = 0; seed < 20; seed++) {
         await repo.drawNames(eventId, random: Random(seed));
         for (final v in await repo.assignments(eventId)) {
@@ -199,13 +246,20 @@ void main() {
 
     test('fails cleanly when impossible, keeping the event a draft', () async {
       await addPeople(['Ana', 'Beto']);
-      await expectLater(repo.drawNames(eventId), throwsA(isA<AssignmentException>()));
+      await expectLater(
+        repo.drawNames(eventId),
+        throwsA(isA<AssignmentException>()),
+      );
 
       await addPeople(['Carla'], groups: {'Carla': 'x'});
       await repo.updateParticipant(
-          (await repo.watchParticipants(eventId).first).first.participant.id,
-          person('Ana', group: 'x'));
-      await expectLater(repo.drawNames(eventId), throwsA(isA<AssignmentException>()));
+        (await repo.watchParticipants(eventId).first).first.participant.id,
+        person('Ana', group: 'x'),
+      );
+      await expectLater(
+        repo.drawNames(eventId),
+        throwsA(isA<AssignmentException>()),
+      );
 
       expect(await repo.assignments(eventId), isEmpty);
       expect((await repo.watchEvent(eventId).first)!.status, EventStatus.draft);
@@ -214,7 +268,10 @@ void main() {
     test('is refused once sending has started', () async {
       await addPeople(['Ana', 'Beto', 'Carla']);
       await setStatus(EventStatus.sending);
-      expect(() => repo.drawNames(eventId), throwsA(isA<EventLockedException>()));
+      expect(
+        () => repo.drawNames(eventId),
+        throwsA(isA<EventLockedException>()),
+      );
     });
   });
 }

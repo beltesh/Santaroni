@@ -56,18 +56,20 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
     final spanish = l10n.localeName.startsWith('es');
     final text = spanish
         ? 'nombre,correo,deseos,grupo\r\n'
-            'Ana,ana@example.com,"Libro de cocina https://example.com/libro\r\n'
-            'Calcetines navideños",familia-lopez\r\n'
-            'Beto,beto@example.com,,familia-lopez\r\n'
-            'Carla,carla@example.com,"Tarjeta de regalo | Taza https://example.com/taza",\r\n'
+              'Ana,ana@example.com,"Libro de cocina https://example.com/libro\r\n'
+              'Calcetines navideños",familia-lopez\r\n'
+              'Beto,beto@example.com,,familia-lopez\r\n'
+              'Carla,carla@example.com,"Tarjeta de regalo | Taza https://example.com/taza",\r\n'
         : 'name,email,wishlist,group\r\n'
-            'Alice,alice@example.com,"Saga Vol. 1 https://example.com/saga\r\n'
-            'Any Moebius artbook",smith\r\n'
-            'Bob,bob@example.com,,smith\r\n'
-            'Carol,carol@example.com,"Gift card | Sandman Deluxe https://example.com/sandman",\r\n';
+              'Alice,alice@example.com,"Saga Vol. 1 https://example.com/saga\r\n'
+              'Any Moebius artbook",smith\r\n'
+              'Bob,bob@example.com,,smith\r\n'
+              'Carol,carol@example.com,"Gift card | Sandman Deluxe https://example.com/sandman",\r\n';
     try {
       final uri = await FilePicker.saveFile(
-        fileName: spanish ? 'participantes-ejemplo.csv' : 'participants-example.csv',
+        fileName: spanish
+            ? 'participantes-ejemplo.csv'
+            : 'participants-example.csv',
         // BOM so Excel opens accented characters correctly.
         bytes: Uint8List.fromList([0xEF, 0xBB, 0xBF, ...utf8.encode(text)]),
         mimeType: 'text/csv',
@@ -85,17 +87,17 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
     final navigator = Navigator.of(context);
     try {
       await ref.read(eventsRepositoryProvider).importParticipants(
-            widget.eventId,
-            [
-              for (final p in result.participants)
-                ParticipantDraft(
-                  name: p.name,
-                  email: p.email,
-                  groupTag: p.group,
-                  wishlist: p.wishlist,
-                ),
-            ],
-          );
+        widget.eventId,
+        [
+          for (final p in result.participants)
+            ParticipantDraft(
+              name: p.name,
+              email: p.email,
+              groupTag: p.group,
+              wishlist: p.wishlist,
+            ),
+        ],
+      );
       navigator.pop(result.participants.length);
     } on EventLockedException {
       if (mounted) showSnack(context, l10n.eventLockedError);
@@ -155,12 +157,14 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
 
     if (result.missingColumns.isNotEmpty) {
       final names = result.missingColumns
-          .map((c) => switch (c) {
-                CsvColumn.name => l10n.csvColName,
-                CsvColumn.email => l10n.csvColEmail,
-                CsvColumn.wishlist => l10n.csvColWishlist,
-                CsvColumn.group => l10n.csvColGroup,
-              })
+          .map(
+            (c) => switch (c) {
+              CsvColumn.name => l10n.csvColName,
+              CsvColumn.email => l10n.csvColEmail,
+              CsvColumn.wishlist => l10n.csvColWishlist,
+              CsvColumn.group => l10n.csvColGroup,
+            },
+          )
           .join(', ');
       return [
         _Message(
@@ -227,12 +231,17 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
                         ),
                       if (p.wishlist.isNotEmpty)
                         Tooltip(
-                          message: p.wishlist.map((w) => '• ${w.text}').join('\n'),
+                          message: p.wishlist
+                              .map((w) => '• ${w.text}')
+                              .join('\n'),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.card_giftcard,
-                                  size: 18, color: theme.colorScheme.primary),
+                              Icon(
+                                Icons.card_giftcard,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
                               const SizedBox(width: 2),
                               Text('${p.wishlist.length}'),
                             ],
@@ -250,12 +259,13 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
   }
 
   String _problem(AppLocalizations l10n, CsvRowError e) => switch (e.problem) {
-        CsvRowProblem.missingName => l10n.csvProblemMissingName,
-        CsvRowProblem.missingEmail => l10n.csvProblemMissingEmail,
-        CsvRowProblem.invalidEmail => l10n.csvProblemInvalidEmail(e.value ?? ''),
-        CsvRowProblem.duplicateEmail =>
-          l10n.csvProblemDuplicateEmail(e.value ?? ''),
-      };
+    CsvRowProblem.missingName => l10n.csvProblemMissingName,
+    CsvRowProblem.missingEmail => l10n.csvProblemMissingEmail,
+    CsvRowProblem.invalidEmail => l10n.csvProblemInvalidEmail(e.value ?? ''),
+    CsvRowProblem.duplicateEmail => l10n.csvProblemDuplicateEmail(
+      e.value ?? '',
+    ),
+  };
 }
 
 class _FormatHelp extends StatelessWidget {

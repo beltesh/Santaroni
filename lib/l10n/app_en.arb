@@ -121,6 +121,225 @@
   "showAll": "Show all",
   "hideAll": "Hide all",
 
+  "emailTemplates": "Email templates",
+  "emailTemplatesSubtitle": "Use your own text or HTML email design",
+  "emailTemplate": "Email template",
+  "emailSubject": "Email subject",
+  "emailSubjectTooltip": "Use {tag} anywhere in the subject to insert the event name.",
+  "@emailSubjectTooltip": {
+    "placeholders": { "tag": { "type": "String" } }
+  },
+  "emailSubjectRequired": "Please enter a subject",
+  "templatesIntro": "Every email is built from a template. Import your own .html or .txt file with variables like the ones listed below; Santaroni fills them in for each participant.",
+  "templatesBuiltIn": "Built-in",
+  "templatesImported": "Imported",
+  "templatesImportedEmpty": "No imported templates yet.",
+  "builtinTemplateName": "Default ({language})",
+  "@builtinTemplateName": {
+    "placeholders": { "language": { "type": "String" } }
+  },
+  "builtinTemplateSubtitle": "HTML email, used unless an event picks another template",
+  "builtinTemplateDescription": "A festive HTML email with all the event details and the recipient's wishlist. A plain-text version is sent along with it, for email apps that can't show HTML and to help keep it out of spam. Save a copy to use it as the starting point for your own design.",
+  "saveTemplateCopy": "Save a copy to customize",
+  "templateCopySaved": "Template saved. Edit it, then import it here.",
+  "importTemplate": "Import template",
+  "formatHtml": "HTML",
+  "formatText": "Plain text",
+  "templateImportedOn": "imported {date}",
+  "@templateImportedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "templateImported": "Imported “{name}”",
+  "@templateImported": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "templateImportedWithProblem": "Imported “{name}”, but it needs fixing before it can be used.",
+  "@templateImportedWithProblem": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "templateReplaced": "Template updated",
+  "templateUnsupportedFile": "Choose a .html or .txt file.",
+  "replaceFile": "Replace with a new file",
+  "templateNeedsFixing": "needs fixing",
+  "templateNeedsFixingLong": "This template has a problem, so emails can't be sent until it's fixed. See Settings › Email templates.",
+  "templateCannotSend": "Can't be used to send emails until fixed",
+  "templateUnknownVariable": "{tag} on line {line} isn't a variable Santaroni knows. Check the spelling against the list of variables.",
+  "@templateUnknownVariable": {
+    "placeholders": { "tag": { "type": "String" }, "line": { "type": "int" } }
+  },
+  "templateSyntaxError": "The template couldn't be read: {message}",
+  "@templateSyntaxError": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+  "templateSyntaxErrorAt": "Line {line}: {message}",
+  "@templateSyntaxErrorAt": {
+    "placeholders": { "line": { "type": "int" }, "message": { "type": "String" } }
+  },
+  "previewSample": "Sample",
+  "previewPlainVersion": "Plain-text version",
+  "previewHtmlNote": "This is the text sent alongside the HTML. To see the HTML itself, send yourself a test email.",
+  "templateVariablesTitle": "Variables you can use",
+  "templateVariablesSubtitle": "Write these in your template file",
+  "varEventName": "Event name",
+  "varEventWhen": "Date and time together, whichever are set",
+  "varEventDate": "Date",
+  "varEventTime": "Time",
+  "varEventPlace": "Place",
+  "varBudget": "Budget, with currency symbol",
+  "varGiverName": "Name of the person this email is for",
+  "varGiverEmail": "Their email address",
+  "varRecipientName": "Who they're giving a gift to",
+  "varOrganizerName": "Your sender name",
+  "varHasDetails": "Section shown when there's a date, place or budget",
+  "varHasWishlist": "Section shown when the recipient has a wishlist",
+  "varWishlist": "Repeats for each wishlist item, with Text and Url",
+  "deleteTemplateTitle": "Delete this template?",
+  "deleteTemplateBody": "Events using it will go back to the default template.",
+
+  "emailAccount": "Email account",
+  "emailAccountNotSetUp": "Not set up yet",
+  "emailProvider": "Email provider",
+  "providerGmail": "Gmail",
+  "providerCustom": "Other (SMTP server)",
+  "gmailHelpTitle": "Gmail needs an app password",
+  "gmailHelpStep1": "1. Turn on 2-Step Verification for your Google account.",
+  "gmailHelpStep2": "2. Create an app password (name it “Santaroni”) at:",
+  "gmailHelpStep3": "3. Paste the 16-letter code below. Your normal Gmail password won't work.",
+  "sentFolderWarningTitle": "Taking part yourself?",
+  "sentFolderWarningBody": "Gmail keeps a copy of every email in your Sent folder, so you'd see everyone's assignments there. Use a separate free Gmail account just for the exchange.",
+  "senderName": "Your name",
+  "senderNameHelp": "Shown as the sender, and in templates as the organizer name",
+  "senderAddress": "Email address",
+  "appPassword": "App password",
+  "password": "Password",
+  "passwordSavedHint": "Saved. Leave empty to keep it.",
+  "passwordStorageNote": "Stored securely in this device's keychain, never in the app's database or backups.",
+  "passwordRequired": "Please enter the password",
+  "serverSettings": "Server",
+  "smtpHost": "SMTP server",
+  "smtpHostRequired": "Please enter the server name",
+  "smtpPort": "Port",
+  "smtpPortInvalid": "Invalid port",
+  "smtpSecurity": "Security",
+  "securityStartTls": "STARTTLS (port 587)",
+  "securitySsl": "SSL/TLS (port 465)",
+  "accountSaved": "Email account saved",
+  "forgetAccount": "Remove account",
+  "forgetAccountTitle": "Remove this email account?",
+  "forgetAccountBody": "Its settings and saved password will be deleted from this device. Your events are not affected.",
+  "sendTestEmail": "Send me a test email",
+  "sendingTestEmail": "Sending test email…",
+  "testEmailPrefix": "[Test] ",
+  "testEmailSentTitle": "Test email sent",
+  "testEmailSentBody": "Check the inbox of {address}. It can take a minute to arrive.",
+  "@testEmailSentBody": {
+    "placeholders": { "address": { "type": "String" } }
+  },
+  "testEmailFailedTitle": "Couldn't send the email",
+  "accountNotReadyTitle": "Email account needed",
+  "accountNotReadyBody": "Set up the account to send from first: your email address and its password.",
+  "setUpAccount": "Set up account",
+  "sendErrorAuthGmail": "Gmail didn't accept the password. Make sure it's an app password (not your normal Gmail password) and that 2-Step Verification is on.",
+  "sendErrorAuth": "The server didn't accept the email address or password.",
+  "sendErrorConnection": "Couldn't reach the email server. Check your internet connection, and the server name and port if you entered them.",
+  "sendErrorRejected": "The server refused the email: {detail}",
+  "@sendErrorRejected": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+  "sendErrorOther": "Something went wrong while sending: {detail}",
+  "@sendErrorOther": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+
+  "accountReadyTitle": "Ready to send",
+  "accountSetUpTitle": "Set up email",
+  "accountSetUpSubtitle": "Needed to send assignments",
+  "accountNeededBanner": "Set up the email account you'll send these assignments from.",
+  "templatesShortcutDefault": "Using the default design",
+  "templatesShortcutImported": "{count, plural, =1{1 imported} other{{count} imported}}",
+  "@templatesShortcutImported": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendEmails": "Send emails",
+  "emailStatus": "Email status",
+  "sendPartlyTitle": "Some emails haven't gone out",
+  "sendPartlyBody": "Open Email status to send the rest or retry the ones that failed.",
+  "allEmailsSent": "All emails sent",
+  "sentBody": "Everyone has their assignment. If someone lost their email, you can resend it from Email status.",
+  "sendTitle": "Send assignments",
+  "checkAccountReady": "Email account is ready",
+  "checkAccountMissing": "Email account isn't set up",
+  "checkTemplateReady": "Subject and template are ready",
+  "checkTemplateProblem": "The subject or template needs fixing",
+  "checkDrawReady": "Names drawn and verified",
+  "sentOfTotal": "{sent} of {total} sent",
+  "@sentOfTotal": {
+    "placeholders": { "sent": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "failedCount": "{count, plural, =1{1 email failed} other{{count} emails failed}}",
+  "@failedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendingInProgress": "Sending… you can leave this screen; it keeps going.",
+  "sendAllButton": "{count, plural, =1{Send 1 email} other{Send {count} emails}}",
+  "@sendAllButton": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendRemainingButton": "{count, plural, =1{Send the remaining email} other{Send the remaining {count}}}",
+  "@sendRemainingButton": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "retryFailedButton": "{count, plural, =1{Retry the failed email} other{Retry {count} failed}}",
+  "@retryFailedButton": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendMePreview": "Send me a preview",
+  "sendPrivacyNote": "The preview uses this event's details with made-up names, so it doesn't reveal anyone's assignment. Only who receives each email is listed below.",
+  "sendConfirmTitle": "{count, plural, =1{Send 1 email?} other{Send {count} emails?}}",
+  "@sendConfirmTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendConfirmBody": "Each participant gets their assignment from {from}. Once emails go out, people can no longer be added or removed.",
+  "@sendConfirmBody": {
+    "placeholders": { "from": { "type": "String" } }
+  },
+  "sendNow": "Send",
+  "stop": "Stop",
+  "stopping": "Stopping…",
+  "sendBlocked": "Fix the items marked in the checklist first.",
+  "sendFinished": "{count, plural, =1{1 email sent} other{{count} emails sent}}",
+  "@sendFinished": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sendFinishedWithFailures": "{sent} sent, {failed} failed. You can retry the failed ones.",
+  "@sendFinishedWithFailures": {
+    "placeholders": { "sent": { "type": "int" }, "failed": { "type": "int" } }
+  },
+  "sendStopped": "Stopped after {count} sent. The rest are waiting.",
+  "@sendStopped": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "resend": "Resend",
+  "resendTitle": "Resend to {name}?",
+  "@resendTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "resendBody": "They'll get their assignment again at {email}. You won't see who it is.",
+  "@resendBody": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "statusSendingNow": "Sending…",
+  "statusEmailPending": "Not sent yet",
+  "statusEmailSent": "Sent",
+  "statusEmailSentAt": "Sent {when}",
+  "@statusEmailSentAt": {
+    "placeholders": { "when": { "type": "String" } }
+  },
+  "statusEmailFailed": "Failed: {error}",
+  "@statusEmailFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+
   "exportJson": "Export JSON",
   "exportTitle": "Save a backup",
   "exportBody": "A full backup includes who gives to whom, in plain text. Anyone who opens the file will see every assignment, including yours.",

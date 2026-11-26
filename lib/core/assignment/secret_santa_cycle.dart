@@ -24,7 +24,8 @@ class AssignmentException implements Exception {
   final String? message;
 
   @override
-  String toString() => 'AssignmentException(${failure.name})'
+  String toString() =>
+      'AssignmentException(${failure.name})'
       '${message == null ? '' : ': $message'}';
 }
 
@@ -161,11 +162,14 @@ abstract final class SecretSantaCycle {
     final receivedBy = <T, int>{};
     for (final MapEntry(key: giver, value: recipient) in assignment.entries) {
       if (!people.contains(giver)) {
-        issues.add(AssignmentIssue(AssignmentIssueType.unknownParticipant, giver));
+        issues.add(
+          AssignmentIssue(AssignmentIssueType.unknownParticipant, giver),
+        );
       }
       if (!people.contains(recipient)) {
         issues.add(
-            AssignmentIssue(AssignmentIssueType.unknownParticipant, recipient));
+          AssignmentIssue(AssignmentIssueType.unknownParticipant, recipient),
+        );
       }
       if (giver == recipient) {
         issues.add(AssignmentIssue(AssignmentIssueType.selfAssignment, giver));
@@ -214,8 +218,7 @@ abstract final class SecretSantaCycle {
     List<T> participants,
     Map<T, T> assignment, {
     Map<T, String?> groups = const {},
-  }) =>
-      validate(participants, assignment, groups: groups).isEmpty;
+  }) => validate(participants, assignment, groups: groups).isEmpty;
 
   /// Removes [leaving] from an existing exchange without regenerating it.
   ///
@@ -254,10 +257,9 @@ abstract final class SecretSantaCycle {
 
     // giver → recipient is forbidden. Move some y (p → y → q) into the gap:
     // giver → y → recipient, and p → q.
-    final candidates = result.keys
-        .where((y) => y != giver && y != recipient)
-        .toList()
-      ..shuffle(rng);
+    final candidates =
+        result.keys.where((y) => y != giver && y != recipient).toList()
+          ..shuffle(rng);
     for (final y in candidates) {
       final p = giverOf[y] as T;
       final q = result[y] as T;
@@ -319,9 +321,9 @@ abstract final class SecretSantaCycle {
   }
 
   static Map<T, T> _cycleToMap<T>(List<T> order) => {
-        for (var i = 0; i < order.length; i++)
-          order[i]: order[(i + 1) % order.length],
-      };
+    for (var i = 0; i < order.length; i++)
+      order[i]: order[(i + 1) % order.length],
+  };
 
   /// Randomized depth-first search for a cycle order, pruned by counting:
   /// a group with c remaining members needs c non-adjacent free slots.
@@ -332,8 +334,9 @@ abstract final class SecretSantaCycle {
   ) {
     final sizes = _groupSizes(participants, groupOf);
     // Starting with a member of the largest group makes tight cases easy.
-    final start = (List<T>.of(participants)..shuffle(rng)).reduce((a, b) =>
-        (sizes[groupOf[b]] ?? 0) > (sizes[groupOf[a]] ?? 0) ? b : a);
+    final start = (List<T>.of(participants)..shuffle(rng)).reduce(
+      (a, b) => (sizes[groupOf[b]] ?? 0) > (sizes[groupOf[a]] ?? 0) ? b : a,
+    );
 
     final remaining = participants.where((p) => p != start).toSet();
     final remainingSizes = Map<String, int>.of(sizes);
@@ -348,9 +351,8 @@ abstract final class SecretSantaCycle {
       if (r == 0) return !_sameGroup(current, start, groupOf);
       for (final MapEntry(key: g, value: count) in remainingSizes.entries) {
         if (count == 0) continue;
-        final slots = r -
-            (g == currentGroup ? 1 : 0) -
-            (g == startGroup ? 1 : 0);
+        final slots =
+            r - (g == currentGroup ? 1 : 0) - (g == startGroup ? 1 : 0);
         if (count > (slots + 1) ~/ 2) return false;
       }
       return true;
@@ -359,10 +361,11 @@ abstract final class SecretSantaCycle {
     bool extend() {
       if (remaining.isEmpty) return true;
       final current = path.last;
-      final options = remaining
-          .where((next) => !_sameGroup(current, next, groupOf))
-          .toList()
-        ..shuffle(rng);
+      final options =
+          remaining
+              .where((next) => !_sameGroup(current, next, groupOf))
+              .toList()
+            ..shuffle(rng);
       for (final next in options) {
         final g = groupOf[next];
         remaining.remove(next);

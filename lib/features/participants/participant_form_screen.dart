@@ -30,8 +30,8 @@ class ParticipantFormScreen extends ConsumerStatefulWidget {
 
 class _WishlistRow {
   _WishlistRow([String text = '', String? url])
-      : text = TextEditingController(text: text),
-        url = TextEditingController(text: url == text ? '' : url);
+    : text = TextEditingController(text: text),
+      url = TextEditingController(text: url == text ? '' : url);
 
   final TextEditingController text;
   final TextEditingController url;
@@ -106,8 +106,10 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
       groupTag: _group.text,
       wishlist: [
         for (final row in _wishlist)
-          WishlistEntry(row.text.text.trim(),
-              row.url.text.trim().isEmpty ? null : row.url.text.trim()),
+          WishlistEntry(
+            row.text.text.trim(),
+            row.url.text.trim().isEmpty ? null : row.url.text.trim(),
+          ),
       ],
     );
     final repo = ref.read(eventsRepositoryProvider);
@@ -158,7 +160,8 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            _isEditing ? l10n.participantFormEditTitle : l10n.addParticipant),
+          _isEditing ? l10n.participantFormEditTitle : l10n.addParticipant,
+        ),
         actions: [
           if (_isEditing)
             IconButton(
@@ -232,7 +235,10 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(l10n.wishlist, style: theme.textTheme.titleMedium),
+                  child: Text(
+                    l10n.wishlist,
+                    style: theme.textTheme.titleMedium,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: _addWishlistRow,
@@ -246,8 +252,9 @@ class _ParticipantFormScreenState extends ConsumerState<ParticipantFormScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   l10n.wishlistEmpty,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             for (final row in _wishlist)

@@ -25,8 +25,13 @@ void main() {
       for (final n in [0, 1, 2]) {
         expect(
           () => SecretSantaCycle.generate(people(n)),
-          throwsA(isA<AssignmentException>().having((e) => e.failure,
-              'failure', AssignmentFailure.tooFewParticipants)),
+          throwsA(
+            isA<AssignmentException>().having(
+              (e) => e.failure,
+              'failure',
+              AssignmentFailure.tooFewParticipants,
+            ),
+          ),
         );
       }
     });
@@ -34,8 +39,13 @@ void main() {
     test('rejects duplicate participants', () {
       expect(
         () => SecretSantaCycle.generate([1, 2, 3, 3]),
-        throwsA(isA<AssignmentException>().having((e) => e.failure, 'failure',
-            AssignmentFailure.duplicateParticipant)),
+        throwsA(
+          isA<AssignmentException>().having(
+            (e) => e.failure,
+            'failure',
+            AssignmentFailure.duplicateParticipant,
+          ),
+        ),
       );
     });
 
@@ -59,8 +69,11 @@ void main() {
       final ps = people(10);
       final groups = {1: 'smith', 2: 'Smith ', 3: 'lee', 4: 'lee', 5: ''};
       for (var seed = 0; seed < 200; seed++) {
-        final a =
-            SecretSantaCycle.generate(ps, groups: groups, random: Random(seed));
+        final a = SecretSantaCycle.generate(
+          ps,
+          groups: groups,
+          random: Random(seed),
+        );
         expectValid(ps, a, groups: groups);
         expect(a[1], isNot(2));
         expect(a[2], isNot(1));
@@ -74,8 +87,13 @@ void main() {
       final groups = {1: 'a', 2: 'a', 3: 'a'};
       expect(
         () => SecretSantaCycle.generate(ps, groups: groups),
-        throwsA(isA<AssignmentException>().having((e) => e.failure, 'failure',
-            AssignmentFailure.exclusionsImpossible)),
+        throwsA(
+          isA<AssignmentException>().having(
+            (e) => e.failure,
+            'failure',
+            AssignmentFailure.exclusionsImpossible,
+          ),
+        ),
       );
     });
 
@@ -85,8 +103,12 @@ void main() {
       final ps = people(30);
       final groups = {for (final p in ps) p: p.isEven ? 'even' : 'odd'};
       for (var seed = 0; seed < 20; seed++) {
-        final a = SecretSantaCycle.generate(ps,
-            groups: groups, random: Random(seed), maxShuffleAttempts: 5);
+        final a = SecretSantaCycle.generate(
+          ps,
+          groups: groups,
+          random: Random(seed),
+          maxShuffleAttempts: 5,
+        );
         expectValid(ps, a, groups: groups);
       }
     });
@@ -108,8 +130,12 @@ void main() {
       ];
       for (final (ps, groups) in cases) {
         for (var seed = 0; seed < 10; seed++) {
-          final a = SecretSantaCycle.generate(ps,
-              groups: groups, random: Random(seed), maxShuffleAttempts: 0);
+          final a = SecretSantaCycle.generate(
+            ps,
+            groups: groups,
+            random: Random(seed),
+            maxShuffleAttempts: 0,
+          );
           expectValid(ps, a, groups: groups);
         }
       }
@@ -122,15 +148,22 @@ void main() {
     });
 
     test('detects two separate loops', () {
-      final issues = SecretSantaCycle.validate(
-          people(6), {1: 2, 2: 3, 3: 1, 4: 5, 5: 6, 6: 4});
-      expect(issues.map((i) => i.type),
-          contains(AssignmentIssueType.notSingleCycle));
+      final issues = SecretSantaCycle.validate(people(6), {
+        1: 2,
+        2: 3,
+        3: 1,
+        4: 5,
+        5: 6,
+        6: 4,
+      });
+      expect(
+        issues.map((i) => i.type),
+        contains(AssignmentIssueType.notSingleCycle),
+      );
     });
 
     test('detects self-assignment, duplicates and missing people', () {
-      final issues =
-          SecretSantaCycle.validate(people(4), {1: 1, 2: 3, 3: 3});
+      final issues = SecretSantaCycle.validate(people(4), {1: 1, 2: 3, 3: 3});
       final types = issues.map((i) => i.type).toSet();
       expect(
         types,
@@ -144,18 +177,26 @@ void main() {
     });
 
     test('detects unknown participants', () {
-      final issues =
-          SecretSantaCycle.validate([1, 2, 3], {1: 2, 2: 3, 3: 1, 9: 1});
-      expect(issues.map((i) => i.type),
-          contains(AssignmentIssueType.unknownParticipant));
+      final issues = SecretSantaCycle.validate(
+        [1, 2, 3],
+        {1: 2, 2: 3, 3: 1, 9: 1},
+      );
+      expect(
+        issues.map((i) => i.type),
+        contains(AssignmentIssueType.unknownParticipant),
+      );
     });
 
     test('detects same-group pairs', () {
       final issues = SecretSantaCycle.validate(
-          [1, 2, 3, 4], {1: 2, 2: 3, 3: 4, 4: 1},
-          groups: {1: 'x', 2: 'X'});
-      expect(issues.map((i) => i.type),
-          contains(AssignmentIssueType.sameGroup));
+        [1, 2, 3, 4],
+        {1: 2, 2: 3, 3: 4, 4: 1},
+        groups: {1: 'x', 2: 'X'},
+      );
+      expect(
+        issues.map((i) => i.type),
+        contains(AssignmentIssueType.sameGroup),
+      );
     });
   });
 
@@ -176,8 +217,10 @@ void main() {
     });
 
     test('throws for someone not in the exchange', () {
-      expect(() => SecretSantaCycle.splice({1: 2, 2: 3, 3: 1}, 9),
-          throwsArgumentError);
+      expect(
+        () => SecretSantaCycle.splice({1: 2, 2: 3, 3: 1}, 9),
+        throwsArgumentError,
+      );
     });
 
     test('relocates someone when the direct splice breaks an exclusion', () {
@@ -185,8 +228,12 @@ void main() {
       final a = {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 1};
       final groups = {1: 'couple', 3: 'couple'};
       for (var seed = 0; seed < 20; seed++) {
-        final result =
-            SecretSantaCycle.splice(a, 2, groups: groups, random: Random(seed));
+        final result = SecretSantaCycle.splice(
+          a,
+          2,
+          groups: groups,
+          random: Random(seed),
+        );
         expectValid([1, 3, 4, 5, 6], result.assignment, groups: groups);
         expect(result.changedGivers, hasLength(3));
         // Everyone not listed as changed keeps their recipient.
@@ -207,8 +254,12 @@ void main() {
       while (remaining.length > 3) {
         final leaving = remaining.removeAt(rng.nextInt(remaining.length));
         try {
-          a = SecretSantaCycle.splice(a, leaving, groups: groups, random: rng)
-              .assignment;
+          a = SecretSantaCycle.splice(
+            a,
+            leaving,
+            groups: groups,
+            random: rng,
+          ).assignment;
         } on AssignmentException catch (e) {
           expect(e.failure, AssignmentFailure.spliceViolatesExclusions);
           return; // Acceptable: the organizer would regenerate.

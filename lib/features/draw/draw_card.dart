@@ -7,7 +7,9 @@ import '../../data/database.dart';
 import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common/dialogs.dart';
-import 'export_action.dart';
+import '../sending/send_screen.dart';
+import '../common/status_colors.dart';
+import '../sending/send_controller.dart';
 import 'review_screen.dart';
 
 /// The "draw names" section of the event screen.
@@ -51,8 +53,9 @@ class _DrawCardState extends ConsumerState<DrawCard> {
         builder: (context) => AlertDialog(
           title: Text(l10n.drawErrorTitle),
           content: Text(switch (e.failure) {
-            AssignmentFailure.tooFewParticipants =>
-              l10n.needMoreParticipants(SecretSantaCycle.minParticipants),
+            AssignmentFailure.tooFewParticipants => l10n.needMoreParticipants(
+              SecretSantaCycle.minParticipants,
+            ),
             _ => l10n.drawErrorExclusions,
           }),
           actions: [
@@ -76,7 +79,8 @@ class _DrawCardState extends ConsumerState<DrawCard> {
     final theme = Theme.of(context);
     final event = widget.event;
     final drawn = event.status != EventStatus.draft;
-    final canEdit = event.status == EventStatus.draft ||
+    final canEdit =
+        event.status == EventStatus.draft ||
         event.status == EventStatus.generated;
     final enoughPeople =
         widget.participantCount >= SecretSantaCycle.minParticipants;
@@ -98,15 +102,26 @@ class _DrawCardState extends ConsumerState<DrawCard> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    drawn ? l10n.drawDoneTitle : l10n.drawReadyTitle,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  child: Text(switch (event.status) {
+                    EventStatus.draft => l10n.drawReadyTitle,
+                    EventStatus.generated => l10n.drawDoneTitle,
+                    EventStatus.sending => l10n.sendPartlyTitle,
+                    EventStatus.sent => l10n.allEmailsSent,
+                  }, style: theme.textTheme.titleMedium),
                 ),
+                if (drawn) ...[
+                  const SizedBox(width: 8),
+                  _SendButton(event: event),
+                ],
               ],
             ),
             const SizedBox(height: 8),
-            Text(drawn ? l10n.drawDoneBody : l10n.drawReadyBody),
+            Text(switch (event.status) {
+              EventStatus.draft => l10n.drawReadyBody,
+              EventStatus.generated => l10n.drawDoneBody,
+              EventStatus.sending => l10n.sendPartlyBody,
+              EventStatus.sent => l10n.sentBody,
+            }),
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
@@ -119,7 +134,7 @@ class _DrawCardState extends ConsumerState<DrawCard> {
                     label: Text(l10n.drawNames),
                   )
                 else ...[
-                  FilledButton.icon(
+                  OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => ReviewScreen(eventId: event.id),
@@ -130,22 +145,68 @@ class _DrawCardState extends ConsumerState<DrawCard> {
                   ),
                   if (canEdit)
                     OutlinedButton.icon(
-                      onPressed:
-                          _busy ? null : () => _draw(confirmRedraw: true),
+                      onPressed: _busy
+                          ? null
+                          : () => _draw(confirmRedraw: true),
                       icon: const Icon(Icons.shuffle),
                       label: Text(l10n.redraw),
                     ),
                 ],
-                OutlinedButton.icon(
-                  onPressed: () => exportEvent(context, ref, event),
-                  icon: const Icon(Icons.save_alt),
-                  label: Text(l10n.exportJson),
-                ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Opens the send screen. Solid green when everything is ready and there
+/// are emails left to send, so it can be spotted without reading; a plain
+/// tonal button otherwise (the send screen explains what's missing).
+class _SendButton extends ConsumerWidget {
+  const _SendButton({required this.event});
+
+  final Event event;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final blockers = ref.watch(sendBlockersProvider(event.id)).value;
+    final ready =
+        blockers != null &&
+        blockers.isEmpty &&
+        event.status != EventStatus.sent;
+
+    void open() => Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => SendScreen(eventId: event.id)),
+    );
+    final label = Text(
+      event.status == EventStatus.generated
+          ? l10n.sendEmails
+          : l10n.emailStatus,
+    );
+
+    if (!ready) {
+      return FilledButton.tonalIcon(
+        onPressed: open,
+        icon: const Icon(Icons.send_outlined),
+        label: label,
+      );
+    }
+    final go = StatusColors.go(context);
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        backgroundColor: go.background,
+        foregroundColor: go.foreground,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        textStyle: Theme.of(context).textTheme.titleSmall
+            ?.copyWith(fontWeight: FontWeight.bold),
+        elevation: 2,
+      ),
+      onPressed: open,
+      icon: const Icon(Icons.send),
+      label: label,
     );
   }
 }

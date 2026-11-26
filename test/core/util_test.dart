@@ -5,8 +5,10 @@ import 'package:santaroni/core/util/slug.dart';
 void main() {
   group('slugify', () {
     test('kebab-cases event names', () {
-      expect(slugify('Comic Book Group Secret Santa 2026'),
-          'comic-book-group-secret-santa-2026');
+      expect(
+        slugify('Comic Book Group Secret Santa 2026'),
+        'comic-book-group-secret-santa-2026',
+      );
     });
 
     test('strips accents and punctuation', () {

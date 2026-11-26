@@ -2,8 +2,10 @@ import '../model/wishlist_entry.dart';
 
 export '../model/wishlist_entry.dart';
 
-final _trailingUrl = RegExp(r'(?:^|\s)((?:https?://|www\.)\S+)$',
-    caseSensitive: false);
+final _trailingUrl = RegExp(
+  r'(?:^|\s)((?:https?://|www\.)\S+)$',
+  caseSensitive: false,
+);
 final _separators = RegExp(r'\s*(?:\r\n|\r|\n|\s\|\s)\s*');
 
 /// Splits a wishlist cell into items.

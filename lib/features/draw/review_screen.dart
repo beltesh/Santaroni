@@ -40,7 +40,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       );
     }
 
-    final allShown = assignments.isNotEmpty &&
+    final allShown =
+        assignments.isNotEmpty &&
         assignments.every((a) => _revealed.contains(a.giver.id));
     final verified = _verify(participants, assignments);
 
@@ -50,9 +51,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         actions: [
           IconButton(
             tooltip: allShown ? l10n.hideAll : l10n.showAll,
-            icon: Icon(allShown
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined),
+            icon: Icon(
+              allShown
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+            ),
             onPressed: () => setState(() {
               if (allShown) {
                 _revealed.clear();
@@ -79,7 +82,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           Text(
             l10n.reviewHiddenHint,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           Card(
@@ -150,8 +154,9 @@ class _AssignmentRow extends StatelessWidget {
             child: revealed
                 ? Text(
                     view.recipient.name,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   )
                 : const _HiddenName(),
@@ -160,9 +165,9 @@ class _AssignmentRow extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: revealed ? l10n.hide : l10n.show,
-        icon: Icon(revealed
-            ? Icons.visibility_off_outlined
-            : Icons.visibility_outlined),
+        icon: Icon(
+          revealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        ),
         onPressed: onToggle,
       ),
     );
@@ -205,7 +210,9 @@ class _StatusLine extends StatelessWidget {
       children: [
         Icon(ok ? Icons.verified_outlined : Icons.error_outline, color: color),
         const SizedBox(width: 8),
-        Expanded(child: Text(text, style: TextStyle(color: color))),
+        Expanded(
+          child: Text(text, style: TextStyle(color: color)),
+        ),
       ],
     );
   }

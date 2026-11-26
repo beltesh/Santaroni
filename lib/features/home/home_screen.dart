@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/providers.dart';
 import '../../data/events_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../common/account_status_widgets.dart';
 import '../common/format.dart';
 import '../events/event_detail_screen.dart';
 import '../events/event_form_screen.dart';
@@ -30,17 +31,28 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: switch (events) {
-        AsyncData(value: final list) when list.isEmpty => const _EmptyState(),
-        AsyncData(value: final list) => ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-            itemCount: list.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, i) => _EventCard(summary: list[i]),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: HomeShortcuts(),
           ),
-        AsyncError(:final error) => Center(child: Text('$error')),
-        _ => const Center(child: CircularProgressIndicator()),
-      },
+          Expanded(
+            child: switch (events) {
+              AsyncData(value: final list) when list.isEmpty =>
+                const _EmptyState(),
+              AsyncData(value: final list) => ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                itemCount: list.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, i) => _EventCard(summary: list[i]),
+              ),
+              AsyncError(:final error) => Center(child: Text('$error')),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         label: Text(l10n.newEvent),
@@ -65,7 +77,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.card_giftcard, size: 64, color: theme.colorScheme.primary),
+            Icon(
+              Icons.card_giftcard,
+              size: 64,
+              color: theme.colorScheme.primary,
+            ),
             const SizedBox(height: 16),
             Text(l10n.homeEmptyTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),

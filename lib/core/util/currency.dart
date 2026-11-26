@@ -38,7 +38,10 @@ int? parseBudget(String input, String currencyCode) {
   // Treat the last '.' or ',' as the decimal separator if it is followed by
   // one or two digits; any other separators are thousands separators.
   final match = RegExp(r'^(.*?)[.,](\d{1,2})$').firstMatch(cleaned);
-  final wholePart = (match?.group(1) ?? cleaned).replaceAll(RegExp(r'[.,]'), '');
+  final wholePart = (match?.group(1) ?? cleaned).replaceAll(
+    RegExp(r'[.,]'),
+    '',
+  );
   final fraction = match?.group(2) ?? '';
   final digits = currencyDecimalDigits(currencyCode);
   final whole = int.tryParse(wholePart.isEmpty ? '0' : wholePart);

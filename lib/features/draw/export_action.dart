@@ -55,8 +55,9 @@ Future<void> exportEvent(
   }
 
   final participants = await repo.watchParticipants(event.id).first;
-  final assignments =
-      includeAssignments ? await repo.assignments(event.id) : null;
+  final assignments = includeAssignments
+      ? await repo.assignments(event.id)
+      : null;
   final json = buildEventJson(
     event: event,
     participants: participants,

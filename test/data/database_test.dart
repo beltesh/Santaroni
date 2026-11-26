@@ -17,22 +17,32 @@ void main() {
   });
 
   test('event defaults and cascade delete', () async {
-    final eventId = await db.into(db.events).insert(
-          EventsCompanion.insert(name: 'Test', slug: 'test'),
-        );
-    final event = await (db.select(db.events)
-          ..where((e) => e.id.equals(eventId)))
-        .getSingle();
+    final eventId = await db
+        .into(db.events)
+        .insert(EventsCompanion.insert(name: 'Test', slug: 'test'));
+    final event = await (db.select(
+      db.events,
+    )..where((e) => e.id.equals(eventId))).getSingle();
     expect(event.currency, 'USD');
     expect(event.status, EventStatus.draft);
 
-    final pid = await db.into(db.participants).insert(
+    final pid = await db
+        .into(db.participants)
+        .insert(
           ParticipantsCompanion.insert(
-              eventId: eventId, name: 'Ana', email: 'ana@example.com'),
+            eventId: eventId,
+            name: 'Ana',
+            email: 'ana@example.com',
+          ),
         );
-    await db.into(db.wishlistItems).insert(
+    await db
+        .into(db.wishlistItems)
+        .insert(
           WishlistItemsCompanion.insert(
-              participantId: pid, position: 0, itemText: 'Book'),
+            participantId: pid,
+            position: 0,
+            itemText: 'Book',
+          ),
         );
 
     await (db.delete(db.events)..where((e) => e.id.equals(eventId))).go();
@@ -41,27 +51,38 @@ void main() {
   });
 
   test('a recipient cannot be deleted before being spliced out', () async {
-    final eventId = await db.into(db.events).insert(
-          EventsCompanion.insert(name: 'Test', slug: 'test'),
-        );
+    final eventId = await db
+        .into(db.events)
+        .insert(EventsCompanion.insert(name: 'Test', slug: 'test'));
     final ids = <int>[];
     for (final name in ['A', 'B', 'C']) {
-      ids.add(await db.into(db.participants).insert(
-            ParticipantsCompanion.insert(
-                eventId: eventId, name: name, email: '$name@example.com'),
-          ));
+      ids.add(
+        await db
+            .into(db.participants)
+            .insert(
+              ParticipantsCompanion.insert(
+                eventId: eventId,
+                name: name,
+                email: '$name@example.com',
+              ),
+            ),
+      );
     }
     for (var i = 0; i < 3; i++) {
-      await db.into(db.assignments).insert(AssignmentsCompanion.insert(
-            eventId: eventId,
-            giverId: ids[i],
-            recipientId: ids[(i + 1) % 3],
-          ));
+      await db
+          .into(db.assignments)
+          .insert(
+            AssignmentsCompanion.insert(
+              eventId: eventId,
+              giverId: ids[i],
+              recipientId: ids[(i + 1) % 3],
+            ),
+          );
     }
 
     expect(
-      () => (db.delete(db.participants)..where((p) => p.id.equals(ids[1])))
-          .go(),
+      () =>
+          (db.delete(db.participants)..where((p) => p.id.equals(ids[1]))).go(),
       throwsA(isA<SqliteException>()),
     );
   });

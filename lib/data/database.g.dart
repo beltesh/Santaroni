@@ -236,85 +236,55 @@ class $EmailTemplatesTable extends EmailTemplates
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _languageCodeMeta = const VerificationMeta(
-    'languageCode',
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
   );
   @override
-  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
-    'language_code',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _subjectMeta = const VerificationMeta(
-    'subject',
-  );
-  @override
-  late final GeneratedColumn<String> subject = GeneratedColumn<String>(
-    'subject',
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _htmlBodyMeta = const VerificationMeta(
-    'htmlBody',
-  );
   @override
-  late final GeneratedColumn<String> htmlBody = GeneratedColumn<String>(
-    'html_body',
+  late final GeneratedColumnWithTypeConverter<TemplateFormat, String> format =
+      GeneratedColumn<String>(
+        'format',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TemplateFormat>($EmailTemplatesTable.$converterformat);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _cssMeta = const VerificationMeta('css');
+  static const VerificationMeta _importedAtMeta = const VerificationMeta(
+    'importedAt',
+  );
   @override
-  late final GeneratedColumn<String> css = GeneratedColumn<String>(
-    'css',
+  late final GeneratedColumn<DateTime> importedAt = GeneratedColumn<DateTime>(
+    'imported_at',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _textBodyMeta = const VerificationMeta(
-    'textBody',
-  );
-  @override
-  late final GeneratedColumn<String> textBody = GeneratedColumn<String>(
-    'text_body',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isBuiltInMeta = const VerificationMeta(
-    'isBuiltIn',
-  );
-  @override
-  late final GeneratedColumn<bool> isBuiltIn = GeneratedColumn<bool>(
-    'is_built_in',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_built_in" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
+    defaultValue: currentDateAndTime,
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     name,
-    languageCode,
-    subject,
-    htmlBody,
-    css,
-    textBody,
-    isBuiltIn,
+    fileName,
+    format,
+    body,
+    importedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -339,47 +309,26 @@ class $EmailTemplatesTable extends EmailTemplates
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('language_code')) {
+    if (data.containsKey('file_name')) {
       context.handle(
-        _languageCodeMeta,
-        languageCode.isAcceptableOrUnknown(
-          data['language_code']!,
-          _languageCodeMeta,
-        ),
-      );
-    }
-    if (data.containsKey('subject')) {
-      context.handle(
-        _subjectMeta,
-        subject.isAcceptableOrUnknown(data['subject']!, _subjectMeta),
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
       );
     } else if (isInserting) {
-      context.missing(_subjectMeta);
+      context.missing(_fileNameMeta);
     }
-    if (data.containsKey('html_body')) {
+    if (data.containsKey('body')) {
       context.handle(
-        _htmlBodyMeta,
-        htmlBody.isAcceptableOrUnknown(data['html_body']!, _htmlBodyMeta),
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
       );
     } else if (isInserting) {
-      context.missing(_htmlBodyMeta);
+      context.missing(_bodyMeta);
     }
-    if (data.containsKey('css')) {
+    if (data.containsKey('imported_at')) {
       context.handle(
-        _cssMeta,
-        css.isAcceptableOrUnknown(data['css']!, _cssMeta),
-      );
-    }
-    if (data.containsKey('text_body')) {
-      context.handle(
-        _textBodyMeta,
-        textBody.isAcceptableOrUnknown(data['text_body']!, _textBodyMeta),
-      );
-    }
-    if (data.containsKey('is_built_in')) {
-      context.handle(
-        _isBuiltInMeta,
-        isBuiltIn.isAcceptableOrUnknown(data['is_built_in']!, _isBuiltInMeta),
+        _importedAtMeta,
+        importedAt.isAcceptableOrUnknown(data['imported_at']!, _importedAtMeta),
       );
     }
     return context;
@@ -399,29 +348,23 @@ class $EmailTemplatesTable extends EmailTemplates
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
-      languageCode: attachedDatabase.typeMapping.read(
+      fileName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}language_code'],
+        data['${effectivePrefix}file_name'],
+      )!,
+      format: $EmailTemplatesTable.$converterformat.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}format'],
+        )!,
       ),
-      subject: attachedDatabase.typeMapping.read(
+      body: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}subject'],
+        data['${effectivePrefix}body'],
       )!,
-      htmlBody: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}html_body'],
-      )!,
-      css: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}css'],
-      )!,
-      textBody: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}text_body'],
-      ),
-      isBuiltIn: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_built_in'],
+      importedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}imported_at'],
       )!,
     );
   }
@@ -430,54 +373,46 @@ class $EmailTemplatesTable extends EmailTemplates
   $EmailTemplatesTable createAlias(String alias) {
     return $EmailTemplatesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<TemplateFormat, String, String> $converterformat =
+      const EnumNameConverter<TemplateFormat>(TemplateFormat.values);
 }
 
 class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
   final int id;
+
+  /// Display name, from the file name without its extension.
   final String name;
 
-  /// Language of the built-in template ("en", "es"); null for custom ones.
-  final String? languageCode;
+  /// The imported file's name, shown so the user knows what to update.
+  final String fileName;
+  final TemplateFormat format;
 
-  /// Mustache template for the subject line.
-  final String subject;
-
-  /// Mustache template for the HTML body.
-  final String htmlBody;
-
-  /// CSS applied to the HTML body. Inlined into elements at send time,
-  /// because many email clients ignore `<style>` blocks.
-  final String css;
-
-  /// Mustache template for the plain-text alternative. When null, a plain
-  /// version is derived from the HTML.
-  final String? textBody;
-  final bool isBuiltIn;
+  /// The file's contents, with `{{Variables}}`. Stored so that moving or
+  /// deleting the original file doesn't break anything.
+  final String body;
+  final DateTime importedAt;
   const EmailTemplate({
     required this.id,
     required this.name,
-    this.languageCode,
-    required this.subject,
-    required this.htmlBody,
-    required this.css,
-    this.textBody,
-    required this.isBuiltIn,
+    required this.fileName,
+    required this.format,
+    required this.body,
+    required this.importedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    if (!nullToAbsent || languageCode != null) {
-      map['language_code'] = Variable<String>(languageCode);
+    map['file_name'] = Variable<String>(fileName);
+    {
+      map['format'] = Variable<String>(
+        $EmailTemplatesTable.$converterformat.toSql(format),
+      );
     }
-    map['subject'] = Variable<String>(subject);
-    map['html_body'] = Variable<String>(htmlBody);
-    map['css'] = Variable<String>(css);
-    if (!nullToAbsent || textBody != null) {
-      map['text_body'] = Variable<String>(textBody);
-    }
-    map['is_built_in'] = Variable<bool>(isBuiltIn);
+    map['body'] = Variable<String>(body);
+    map['imported_at'] = Variable<DateTime>(importedAt);
     return map;
   }
 
@@ -485,16 +420,10 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     return EmailTemplatesCompanion(
       id: Value(id),
       name: Value(name),
-      languageCode: languageCode == null && nullToAbsent
-          ? const Value.absent()
-          : Value(languageCode),
-      subject: Value(subject),
-      htmlBody: Value(htmlBody),
-      css: Value(css),
-      textBody: textBody == null && nullToAbsent
-          ? const Value.absent()
-          : Value(textBody),
-      isBuiltIn: Value(isBuiltIn),
+      fileName: Value(fileName),
+      format: Value(format),
+      body: Value(body),
+      importedAt: Value(importedAt),
     );
   }
 
@@ -506,12 +435,12 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     return EmailTemplate(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      languageCode: serializer.fromJson<String?>(json['languageCode']),
-      subject: serializer.fromJson<String>(json['subject']),
-      htmlBody: serializer.fromJson<String>(json['htmlBody']),
-      css: serializer.fromJson<String>(json['css']),
-      textBody: serializer.fromJson<String?>(json['textBody']),
-      isBuiltIn: serializer.fromJson<bool>(json['isBuiltIn']),
+      fileName: serializer.fromJson<String>(json['fileName']),
+      format: $EmailTemplatesTable.$converterformat.fromJson(
+        serializer.fromJson<String>(json['format']),
+      ),
+      body: serializer.fromJson<String>(json['body']),
+      importedAt: serializer.fromJson<DateTime>(json['importedAt']),
     );
   }
   @override
@@ -520,46 +449,40 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'languageCode': serializer.toJson<String?>(languageCode),
-      'subject': serializer.toJson<String>(subject),
-      'htmlBody': serializer.toJson<String>(htmlBody),
-      'css': serializer.toJson<String>(css),
-      'textBody': serializer.toJson<String?>(textBody),
-      'isBuiltIn': serializer.toJson<bool>(isBuiltIn),
+      'fileName': serializer.toJson<String>(fileName),
+      'format': serializer.toJson<String>(
+        $EmailTemplatesTable.$converterformat.toJson(format),
+      ),
+      'body': serializer.toJson<String>(body),
+      'importedAt': serializer.toJson<DateTime>(importedAt),
     };
   }
 
   EmailTemplate copyWith({
     int? id,
     String? name,
-    Value<String?> languageCode = const Value.absent(),
-    String? subject,
-    String? htmlBody,
-    String? css,
-    Value<String?> textBody = const Value.absent(),
-    bool? isBuiltIn,
+    String? fileName,
+    TemplateFormat? format,
+    String? body,
+    DateTime? importedAt,
   }) => EmailTemplate(
     id: id ?? this.id,
     name: name ?? this.name,
-    languageCode: languageCode.present ? languageCode.value : this.languageCode,
-    subject: subject ?? this.subject,
-    htmlBody: htmlBody ?? this.htmlBody,
-    css: css ?? this.css,
-    textBody: textBody.present ? textBody.value : this.textBody,
-    isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+    fileName: fileName ?? this.fileName,
+    format: format ?? this.format,
+    body: body ?? this.body,
+    importedAt: importedAt ?? this.importedAt,
   );
   EmailTemplate copyWithCompanion(EmailTemplatesCompanion data) {
     return EmailTemplate(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      languageCode: data.languageCode.present
-          ? data.languageCode.value
-          : this.languageCode,
-      subject: data.subject.present ? data.subject.value : this.subject,
-      htmlBody: data.htmlBody.present ? data.htmlBody.value : this.htmlBody,
-      css: data.css.present ? data.css.value : this.css,
-      textBody: data.textBody.present ? data.textBody.value : this.textBody,
-      isBuiltIn: data.isBuiltIn.present ? data.isBuiltIn.value : this.isBuiltIn,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      format: data.format.present ? data.format.value : this.format,
+      body: data.body.present ? data.body.value : this.body,
+      importedAt: data.importedAt.present
+          ? data.importedAt.value
+          : this.importedAt,
     );
   }
 
@@ -568,113 +491,87 @@ class EmailTemplate extends DataClass implements Insertable<EmailTemplate> {
     return (StringBuffer('EmailTemplate(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('languageCode: $languageCode, ')
-          ..write('subject: $subject, ')
-          ..write('htmlBody: $htmlBody, ')
-          ..write('css: $css, ')
-          ..write('textBody: $textBody, ')
-          ..write('isBuiltIn: $isBuiltIn')
+          ..write('fileName: $fileName, ')
+          ..write('format: $format, ')
+          ..write('body: $body, ')
+          ..write('importedAt: $importedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    languageCode,
-    subject,
-    htmlBody,
-    css,
-    textBody,
-    isBuiltIn,
-  );
+  int get hashCode => Object.hash(id, name, fileName, format, body, importedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is EmailTemplate &&
           other.id == this.id &&
           other.name == this.name &&
-          other.languageCode == this.languageCode &&
-          other.subject == this.subject &&
-          other.htmlBody == this.htmlBody &&
-          other.css == this.css &&
-          other.textBody == this.textBody &&
-          other.isBuiltIn == this.isBuiltIn);
+          other.fileName == this.fileName &&
+          other.format == this.format &&
+          other.body == this.body &&
+          other.importedAt == this.importedAt);
 }
 
 class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
   final Value<int> id;
   final Value<String> name;
-  final Value<String?> languageCode;
-  final Value<String> subject;
-  final Value<String> htmlBody;
-  final Value<String> css;
-  final Value<String?> textBody;
-  final Value<bool> isBuiltIn;
+  final Value<String> fileName;
+  final Value<TemplateFormat> format;
+  final Value<String> body;
+  final Value<DateTime> importedAt;
   const EmailTemplatesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.languageCode = const Value.absent(),
-    this.subject = const Value.absent(),
-    this.htmlBody = const Value.absent(),
-    this.css = const Value.absent(),
-    this.textBody = const Value.absent(),
-    this.isBuiltIn = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.format = const Value.absent(),
+    this.body = const Value.absent(),
+    this.importedAt = const Value.absent(),
   });
   EmailTemplatesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    this.languageCode = const Value.absent(),
-    required String subject,
-    required String htmlBody,
-    this.css = const Value.absent(),
-    this.textBody = const Value.absent(),
-    this.isBuiltIn = const Value.absent(),
+    required String fileName,
+    required TemplateFormat format,
+    required String body,
+    this.importedAt = const Value.absent(),
   }) : name = Value(name),
-       subject = Value(subject),
-       htmlBody = Value(htmlBody);
+       fileName = Value(fileName),
+       format = Value(format),
+       body = Value(body);
   static Insertable<EmailTemplate> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<String>? languageCode,
-    Expression<String>? subject,
-    Expression<String>? htmlBody,
-    Expression<String>? css,
-    Expression<String>? textBody,
-    Expression<bool>? isBuiltIn,
+    Expression<String>? fileName,
+    Expression<String>? format,
+    Expression<String>? body,
+    Expression<DateTime>? importedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (languageCode != null) 'language_code': languageCode,
-      if (subject != null) 'subject': subject,
-      if (htmlBody != null) 'html_body': htmlBody,
-      if (css != null) 'css': css,
-      if (textBody != null) 'text_body': textBody,
-      if (isBuiltIn != null) 'is_built_in': isBuiltIn,
+      if (fileName != null) 'file_name': fileName,
+      if (format != null) 'format': format,
+      if (body != null) 'body': body,
+      if (importedAt != null) 'imported_at': importedAt,
     });
   }
 
   EmailTemplatesCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
-    Value<String?>? languageCode,
-    Value<String>? subject,
-    Value<String>? htmlBody,
-    Value<String>? css,
-    Value<String?>? textBody,
-    Value<bool>? isBuiltIn,
+    Value<String>? fileName,
+    Value<TemplateFormat>? format,
+    Value<String>? body,
+    Value<DateTime>? importedAt,
   }) {
     return EmailTemplatesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      languageCode: languageCode ?? this.languageCode,
-      subject: subject ?? this.subject,
-      htmlBody: htmlBody ?? this.htmlBody,
-      css: css ?? this.css,
-      textBody: textBody ?? this.textBody,
-      isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+      fileName: fileName ?? this.fileName,
+      format: format ?? this.format,
+      body: body ?? this.body,
+      importedAt: importedAt ?? this.importedAt,
     );
   }
 
@@ -687,23 +584,19 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (languageCode.present) {
-      map['language_code'] = Variable<String>(languageCode.value);
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
     }
-    if (subject.present) {
-      map['subject'] = Variable<String>(subject.value);
+    if (format.present) {
+      map['format'] = Variable<String>(
+        $EmailTemplatesTable.$converterformat.toSql(format.value),
+      );
     }
-    if (htmlBody.present) {
-      map['html_body'] = Variable<String>(htmlBody.value);
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
     }
-    if (css.present) {
-      map['css'] = Variable<String>(css.value);
-    }
-    if (textBody.present) {
-      map['text_body'] = Variable<String>(textBody.value);
-    }
-    if (isBuiltIn.present) {
-      map['is_built_in'] = Variable<bool>(isBuiltIn.value);
+    if (importedAt.present) {
+      map['imported_at'] = Variable<DateTime>(importedAt.value);
     }
     return map;
   }
@@ -713,12 +606,10 @@ class EmailTemplatesCompanion extends UpdateCompanion<EmailTemplate> {
     return (StringBuffer('EmailTemplatesCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('languageCode: $languageCode, ')
-          ..write('subject: $subject, ')
-          ..write('htmlBody: $htmlBody, ')
-          ..write('css: $css, ')
-          ..write('textBody: $textBody, ')
-          ..write('isBuiltIn: $isBuiltIn')
+          ..write('fileName: $fileName, ')
+          ..write('format: $format, ')
+          ..write('body: $body, ')
+          ..write('importedAt: $importedAt')
           ..write(')'))
         .toString();
   }
@@ -840,6 +731,17 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       'REFERENCES email_templates (id) ON DELETE SET NULL',
     ),
   );
+  static const VerificationMeta _emailSubjectMeta = const VerificationMeta(
+    'emailSubject',
+  );
+  @override
+  late final GeneratedColumn<String> emailSubject = GeneratedColumn<String>(
+    'email_subject',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<EventStatus, String> status =
       GeneratedColumn<String>(
@@ -874,6 +776,7 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     currency,
     languageCode,
     templateId,
+    emailSubject,
     status,
     createdAt,
   ];
@@ -956,6 +859,15 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
       );
     }
+    if (data.containsKey('email_subject')) {
+      context.handle(
+        _emailSubjectMeta,
+        emailSubject.isAcceptableOrUnknown(
+          data['email_subject']!,
+          _emailSubjectMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1011,6 +923,10 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         DriftSqlType.int,
         data['${effectivePrefix}template_id'],
       ),
+      emailSubject: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email_subject'],
+      ),
       status: $EventsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -1055,7 +971,14 @@ class Event extends DataClass implements Insertable<Event> {
 
   /// Language used for this event's emails.
   final String languageCode;
+
+  /// Imported template for the email body, or null for the built-in plain
+  /// text one in [languageCode].
   final int? templateId;
+
+  /// Subject line, may contain `{{Variables}}`. Null means the default
+  /// subject for [languageCode].
+  final String? emailSubject;
   final EventStatus status;
   final DateTime createdAt;
   const Event({
@@ -1069,6 +992,7 @@ class Event extends DataClass implements Insertable<Event> {
     required this.currency,
     required this.languageCode,
     this.templateId,
+    this.emailSubject,
     required this.status,
     required this.createdAt,
   });
@@ -1094,6 +1018,9 @@ class Event extends DataClass implements Insertable<Event> {
     map['language_code'] = Variable<String>(languageCode);
     if (!nullToAbsent || templateId != null) {
       map['template_id'] = Variable<int>(templateId);
+    }
+    if (!nullToAbsent || emailSubject != null) {
+      map['email_subject'] = Variable<String>(emailSubject);
     }
     {
       map['status'] = Variable<String>(
@@ -1126,6 +1053,9 @@ class Event extends DataClass implements Insertable<Event> {
       templateId: templateId == null && nullToAbsent
           ? const Value.absent()
           : Value(templateId),
+      emailSubject: emailSubject == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emailSubject),
       status: Value(status),
       createdAt: Value(createdAt),
     );
@@ -1147,6 +1077,7 @@ class Event extends DataClass implements Insertable<Event> {
       currency: serializer.fromJson<String>(json['currency']),
       languageCode: serializer.fromJson<String>(json['languageCode']),
       templateId: serializer.fromJson<int?>(json['templateId']),
+      emailSubject: serializer.fromJson<String?>(json['emailSubject']),
       status: $EventsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -1167,6 +1098,7 @@ class Event extends DataClass implements Insertable<Event> {
       'currency': serializer.toJson<String>(currency),
       'languageCode': serializer.toJson<String>(languageCode),
       'templateId': serializer.toJson<int?>(templateId),
+      'emailSubject': serializer.toJson<String?>(emailSubject),
       'status': serializer.toJson<String>(
         $EventsTable.$converterstatus.toJson(status),
       ),
@@ -1185,6 +1117,7 @@ class Event extends DataClass implements Insertable<Event> {
     String? currency,
     String? languageCode,
     Value<int?> templateId = const Value.absent(),
+    Value<String?> emailSubject = const Value.absent(),
     EventStatus? status,
     DateTime? createdAt,
   }) => Event(
@@ -1198,6 +1131,7 @@ class Event extends DataClass implements Insertable<Event> {
     currency: currency ?? this.currency,
     languageCode: languageCode ?? this.languageCode,
     templateId: templateId.present ? templateId.value : this.templateId,
+    emailSubject: emailSubject.present ? emailSubject.value : this.emailSubject,
     status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1219,6 +1153,9 @@ class Event extends DataClass implements Insertable<Event> {
       templateId: data.templateId.present
           ? data.templateId.value
           : this.templateId,
+      emailSubject: data.emailSubject.present
+          ? data.emailSubject.value
+          : this.emailSubject,
       status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -1237,6 +1174,7 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('currency: $currency, ')
           ..write('languageCode: $languageCode, ')
           ..write('templateId: $templateId, ')
+          ..write('emailSubject: $emailSubject, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1255,6 +1193,7 @@ class Event extends DataClass implements Insertable<Event> {
     currency,
     languageCode,
     templateId,
+    emailSubject,
     status,
     createdAt,
   );
@@ -1272,6 +1211,7 @@ class Event extends DataClass implements Insertable<Event> {
           other.currency == this.currency &&
           other.languageCode == this.languageCode &&
           other.templateId == this.templateId &&
+          other.emailSubject == this.emailSubject &&
           other.status == this.status &&
           other.createdAt == this.createdAt);
 }
@@ -1287,6 +1227,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<String> currency;
   final Value<String> languageCode;
   final Value<int?> templateId;
+  final Value<String?> emailSubject;
   final Value<EventStatus> status;
   final Value<DateTime> createdAt;
   const EventsCompanion({
@@ -1300,6 +1241,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.currency = const Value.absent(),
     this.languageCode = const Value.absent(),
     this.templateId = const Value.absent(),
+    this.emailSubject = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -1314,6 +1256,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.currency = const Value.absent(),
     this.languageCode = const Value.absent(),
     this.templateId = const Value.absent(),
+    this.emailSubject = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
@@ -1329,6 +1272,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<String>? currency,
     Expression<String>? languageCode,
     Expression<int>? templateId,
+    Expression<String>? emailSubject,
     Expression<String>? status,
     Expression<DateTime>? createdAt,
   }) {
@@ -1343,6 +1287,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (currency != null) 'currency': currency,
       if (languageCode != null) 'language_code': languageCode,
       if (templateId != null) 'template_id': templateId,
+      if (emailSubject != null) 'email_subject': emailSubject,
       if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -1359,6 +1304,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Value<String>? currency,
     Value<String>? languageCode,
     Value<int?>? templateId,
+    Value<String?>? emailSubject,
     Value<EventStatus>? status,
     Value<DateTime>? createdAt,
   }) {
@@ -1373,6 +1319,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       currency: currency ?? this.currency,
       languageCode: languageCode ?? this.languageCode,
       templateId: templateId ?? this.templateId,
+      emailSubject: emailSubject ?? this.emailSubject,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -1411,6 +1358,9 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (templateId.present) {
       map['template_id'] = Variable<int>(templateId.value);
     }
+    if (emailSubject.present) {
+      map['email_subject'] = Variable<String>(emailSubject.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $EventsTable.$converterstatus.toSql(status.value),
@@ -1435,6 +1385,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('currency: $currency, ')
           ..write('languageCode: $languageCode, ')
           ..write('templateId: $templateId, ')
+          ..write('emailSubject: $emailSubject, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2790,23 +2741,19 @@ typedef $$EmailTemplatesTableCreateCompanionBuilder =
     EmailTemplatesCompanion Function({
       Value<int> id,
       required String name,
-      Value<String?> languageCode,
-      required String subject,
-      required String htmlBody,
-      Value<String> css,
-      Value<String?> textBody,
-      Value<bool> isBuiltIn,
+      required String fileName,
+      required TemplateFormat format,
+      required String body,
+      Value<DateTime> importedAt,
     });
 typedef $$EmailTemplatesTableUpdateCompanionBuilder =
     EmailTemplatesCompanion Function({
       Value<int> id,
       Value<String> name,
-      Value<String?> languageCode,
-      Value<String> subject,
-      Value<String> htmlBody,
-      Value<String> css,
-      Value<String?> textBody,
-      Value<bool> isBuiltIn,
+      Value<String> fileName,
+      Value<TemplateFormat> format,
+      Value<String> body,
+      Value<DateTime> importedAt,
     });
 
 final class $$EmailTemplatesTableReferences
@@ -2856,33 +2803,24 @@ class $$EmailTemplatesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get languageCode => $composableBuilder(
-    column: $table.languageCode,
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get subject => $composableBuilder(
-    column: $table.subject,
+  ColumnWithTypeConverterFilters<TemplateFormat, TemplateFormat, String>
+  get format => $composableBuilder(
+    column: $table.format,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get htmlBody => $composableBuilder(
-    column: $table.htmlBody,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get css => $composableBuilder(
-    column: $table.css,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get textBody => $composableBuilder(
-    column: $table.textBody,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isBuiltIn => $composableBuilder(
-    column: $table.isBuiltIn,
+  ColumnFilters<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2931,33 +2869,23 @@ class $$EmailTemplatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get languageCode => $composableBuilder(
-    column: $table.languageCode,
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get subject => $composableBuilder(
-    column: $table.subject,
+  ColumnOrderings<String> get format => $composableBuilder(
+    column: $table.format,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get htmlBody => $composableBuilder(
-    column: $table.htmlBody,
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get css => $composableBuilder(
-    column: $table.css,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get textBody => $composableBuilder(
-    column: $table.textBody,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isBuiltIn => $composableBuilder(
-    column: $table.isBuiltIn,
+  ColumnOrderings<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2977,25 +2905,19 @@ class $$EmailTemplatesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get languageCode => $composableBuilder(
-    column: $table.languageCode,
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TemplateFormat, String> get format =>
+      $composableBuilder(column: $table.format, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get subject =>
-      $composableBuilder(column: $table.subject, builder: (column) => column);
-
-  GeneratedColumn<String> get htmlBody =>
-      $composableBuilder(column: $table.htmlBody, builder: (column) => column);
-
-  GeneratedColumn<String> get css =>
-      $composableBuilder(column: $table.css, builder: (column) => column);
-
-  GeneratedColumn<String> get textBody =>
-      $composableBuilder(column: $table.textBody, builder: (column) => column);
-
-  GeneratedColumn<bool> get isBuiltIn =>
-      $composableBuilder(column: $table.isBuiltIn, builder: (column) => column);
 
   Expression<T> eventsRefs<T extends Object>(
     Expression<T> Function($$EventsTableAnnotationComposer a) f,
@@ -3055,41 +2977,33 @@ class $$EmailTemplatesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<String?> languageCode = const Value.absent(),
-                Value<String> subject = const Value.absent(),
-                Value<String> htmlBody = const Value.absent(),
-                Value<String> css = const Value.absent(),
-                Value<String?> textBody = const Value.absent(),
-                Value<bool> isBuiltIn = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<TemplateFormat> format = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<DateTime> importedAt = const Value.absent(),
               }) => EmailTemplatesCompanion(
                 id: id,
                 name: name,
-                languageCode: languageCode,
-                subject: subject,
-                htmlBody: htmlBody,
-                css: css,
-                textBody: textBody,
-                isBuiltIn: isBuiltIn,
+                fileName: fileName,
+                format: format,
+                body: body,
+                importedAt: importedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
-                Value<String?> languageCode = const Value.absent(),
-                required String subject,
-                required String htmlBody,
-                Value<String> css = const Value.absent(),
-                Value<String?> textBody = const Value.absent(),
-                Value<bool> isBuiltIn = const Value.absent(),
+                required String fileName,
+                required TemplateFormat format,
+                required String body,
+                Value<DateTime> importedAt = const Value.absent(),
               }) => EmailTemplatesCompanion.insert(
                 id: id,
                 name: name,
-                languageCode: languageCode,
-                subject: subject,
-                htmlBody: htmlBody,
-                css: css,
-                textBody: textBody,
-                isBuiltIn: isBuiltIn,
+                fileName: fileName,
+                format: format,
+                body: body,
+                importedAt: importedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3159,6 +3073,7 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<String> currency,
   Value<String> languageCode,
   Value<int?> templateId,
+  Value<String?> emailSubject,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3173,6 +3088,7 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<String> currency,
   Value<String> languageCode,
   Value<int?> templateId,
+  Value<String?> emailSubject,
   Value<EventStatus> status,
   Value<DateTime> createdAt,
 });
@@ -3286,6 +3202,11 @@ class $$EventsTableFilterComposer
 
   ColumnFilters<String> get languageCode => $composableBuilder(
     column: $table.languageCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emailSubject => $composableBuilder(
+    column: $table.emailSubject,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3428,6 +3349,11 @@ class $$EventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get emailSubject => $composableBuilder(
+    column: $table.emailSubject,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -3499,6 +3425,11 @@ class $$EventsTableAnnotationComposer
 
   GeneratedColumn<String> get languageCode => $composableBuilder(
     column: $table.languageCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get emailSubject => $composableBuilder(
+    column: $table.emailSubject,
     builder: (column) => column,
   );
 
@@ -3624,6 +3555,7 @@ class $$EventsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<String> languageCode = const Value.absent(),
                 Value<int?> templateId = const Value.absent(),
+                Value<String?> emailSubject = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion(
@@ -3637,6 +3569,7 @@ class $$EventsTableTableManager
                 currency: currency,
                 languageCode: languageCode,
                 templateId: templateId,
+                emailSubject: emailSubject,
                 status: status,
                 createdAt: createdAt,
               ),
@@ -3652,6 +3585,7 @@ class $$EventsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<String> languageCode = const Value.absent(),
                 Value<int?> templateId = const Value.absent(),
+                Value<String?> emailSubject = const Value.absent(),
                 Value<EventStatus> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EventsCompanion.insert(
@@ -3665,6 +3599,7 @@ class $$EventsTableTableManager
                 currency: currency,
                 languageCode: languageCode,
                 templateId: templateId,
+                emailSubject: emailSubject,
                 status: status,
                 createdAt: createdAt,
               ),

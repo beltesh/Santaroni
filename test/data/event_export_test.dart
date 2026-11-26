@@ -16,14 +16,16 @@ void main() {
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     repo = EventsRepository(db);
-    eventId = await repo.createEvent(EventDraft(
-      name: 'Comic Book Group Secret Santa 2026',
-      date: DateTime(2026, 12, 20),
-      time: '19:30',
-      place: 'The shop',
-      budgetMinor: 2550,
-      languageCode: 'en',
-    ));
+    eventId = await repo.createEvent(
+      EventDraft(
+        name: 'Comic Book Group Secret Santa 2026',
+        date: DateTime(2026, 12, 20),
+        time: '19:30',
+        place: 'The shop',
+        budgetMinor: 2550,
+        languageCode: 'en',
+      ),
+    );
     for (final (name, wishes) in [
       ('Ana', const [WishlistEntry('Saga Vol. 1', 'https://example.com/saga')]),
       ('Beto', const <WishlistEntry>[]),
@@ -32,7 +34,10 @@ void main() {
       await repo.addParticipant(
         eventId,
         ParticipantDraft(
-            name: name, email: '${name.toLowerCase()}@example.com', wishlist: wishes),
+          name: name,
+          email: '${name.toLowerCase()}@example.com',
+          wishlist: wishes,
+        ),
       );
     }
     await repo.drawNames(eventId, random: Random(1));
@@ -84,10 +89,19 @@ void main() {
     ]);
     expect(data['includesAssignments'], isTrue);
 
-    final assignments = (data['assignments'] as List).cast<Map<String, dynamic>>();
+    final assignments = (data['assignments'] as List)
+        .cast<Map<String, dynamic>>();
     expect(assignments, hasLength(3));
-    expect(assignments.map((a) => a['giver']).toSet(), {'Ana', 'Beto', 'Carla'});
-    expect(assignments.map((a) => a['recipient']).toSet(), {'Ana', 'Beto', 'Carla'});
+    expect(assignments.map((a) => a['giver']).toSet(), {
+      'Ana',
+      'Beto',
+      'Carla',
+    });
+    expect(assignments.map((a) => a['recipient']).toSet(), {
+      'Ana',
+      'Beto',
+      'Carla',
+    });
     expect(assignments.every((a) => a['giver'] != a['recipient']), isTrue);
     expect(assignments.first['emailStatus'], 'pending');
   });
@@ -101,7 +115,9 @@ void main() {
 
   test('whole budgets are written as integers', () async {
     await repo.updateEvent(
-        eventId, const EventDraft(name: 'X', budgetMinor: 2500));
+      eventId,
+      const EventDraft(name: 'X', budgetMinor: 2500),
+    );
     final data = await export(withAssignments: false);
     expect(data['event']['budget'], 25);
     expect(data['event']['date'], isNull);
